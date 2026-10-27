@@ -90,6 +90,16 @@
     .pdf-canvas-container {
       touch-action: pan-x pan-y pinch-zoom;
     }
+    /* Estilo de tabla de cantidades */
+    .table-calc th {
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+    }
+    .table-calc td {
+      font-size: 12px;
+    }
   </style>
 </head>
 
@@ -106,17 +116,17 @@
 
       <nav class="flex flex-col items-center gap-3" id="desktop-nav">
         <!-- 1. Ficha y Planos -->
-        <button onclick="switchTab('planos')" data-tab="planos" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 bg-primary text-on-primary shadow-sm" title="1. Ficha y Planos (Activo)">
+        <button onclick="switchTab('planos')" data-tab="planos" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" title="1. Ficha y Planos">
           <span class="material-symbols-outlined text-[20px]">folder_open</span>
         </button>
 
-        <!-- 2. Presupuesto (Función 2 Activa) -->
-        <button onclick="switchTab('presupuesto')" data-tab="presupuesto" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-200" title="2. Presupuesto y Costos (Activo)">
+        <!-- 2. Presupuesto (Activo) -->
+        <button onclick="switchTab('presupuesto')" data-tab="presupuesto" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 bg-primary text-on-primary shadow-sm" title="2. Presupuesto y Memorias (Activo)">
           <span class="material-symbols-outlined text-[20px]">calculate</span>
         </button>
 
         <!-- 3. Bitácora de Gastos -->
-        <button onclick="switchTab('gastos')" data-tab="gastos" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-200" title="3. Bitácora de Gastos (Próximo)">
+        <button onclick="switchTab('gastos')" data-tab="gastos" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-200" title="3. Bitácora de Gastos">
           <span class="material-symbols-outlined text-[20px]">receipt_long</span>
         </button>
 
@@ -147,13 +157,13 @@
   <!-- NAVEGACIÓN MÓVIL (Barra Inferior Flotante) -->
   <!-- ========================================== -->
   <nav class="lg:hidden fixed bottom-3 left-3 right-3 z-50 bg-surface-container-lowest/95 backdrop-blur-md rounded-full shadow-[0_12px_32px_rgba(28,35,33,0.15)] border border-outline-variant/30 px-3 py-2 flex items-center justify-around" id="mobile-nav">
-    <button onclick="switchTab('planos')" data-tab="planos" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-primary">
+    <button onclick="switchTab('planos')" data-tab="planos" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-on-surface-variant">
       <span class="material-symbols-outlined text-[22px]">folder_open</span>
-      <span class="text-[10px] font-semibold">Planos</span>
+      <span class="text-[10px] font-medium">Planos</span>
     </button>
-    <button onclick="switchTab('presupuesto')" data-tab="presupuesto" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-on-surface-variant">
+    <button onclick="switchTab('presupuesto')" data-tab="presupuesto" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-primary font-bold">
       <span class="material-symbols-outlined text-[22px]">calculate</span>
-      <span class="text-[10px] font-medium">Presupuesto</span>
+      <span class="text-[10px] font-semibold">Presupuesto</span>
     </button>
     <button onclick="switchTab('gastos')" data-tab="gastos" class="mobile-nav-btn flex flex-col items-center gap-0.5 text-on-surface-variant">
       <span class="material-symbols-outlined text-[22px]">receipt_long</span>
@@ -181,7 +191,7 @@
           <span class="px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-semibold">
             ObraControl v1.0
           </span>
-          <span class="text-xs text-on-surface-variant" id="header-active-feature-label">· Función 1 & 2 Activas</span>
+          <span class="text-xs text-on-surface-variant" id="header-active-feature-label">· Función 2: Presupuesto por Capítulos</span>
         </div>
         <h1 class="text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mt-1" id="header-project-name">
           Casa Valparaíso
@@ -193,13 +203,13 @@
 
       <!-- Acciones de Cabecera Dinámicas -->
       <div class="flex items-center gap-2 self-start sm:self-auto" id="header-action-container">
-        <button onclick="openModal('modal-proyecto')" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container-lowest shadow-[0_4px_16px_rgba(28,35,33,0.05)] text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-all">
-          <span class="material-symbols-outlined text-[16px] text-secondary">edit</span>
-          Editar Ficha
+        <button onclick="openApuModal()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-[0_8px_20px_-4px_rgba(22,51,40,0.3)] hover:opacity-95 transition-transform active:scale-95">
+          <span class="material-symbols-outlined text-[16px]">add_circle</span>
+          + Agregar Ítem (Z-1, V-1...)
         </button>
-        <button onclick="openUploadModal()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-[0_8px_20px_-4px_rgba(22,51,40,0.3)] hover:opacity-95 transition-transform active:scale-95">
-          <span class="material-symbols-outlined text-[16px]">cloud_upload</span>
-          Subir Plano
+        <button onclick="promptNewChapter()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container-lowest shadow-[0_4px_16px_rgba(28,35,33,0.05)] text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-all">
+          <span class="material-symbols-outlined text-[16px] text-secondary">create_new_folder</span>
+          + Capítulo
         </button>
       </div>
     </header>
@@ -207,7 +217,7 @@
     <!-- =================================================== -->
     <!-- VISTA 1: PLANOS Y FICHA TÉCNICA (FUNCIÓN 1 DEL PRD) -->
     <!-- =================================================== -->
-    <main id="view-planos" class="view-section flex flex-col gap-6">
+    <main id="view-planos" class="view-section hidden flex-col gap-6">
 
       <!-- Barra de Estado / Aviso -->
       <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-secondary-container/40 rounded-xl border border-secondary-container">
@@ -221,15 +231,14 @@
         </div>
       </div>
 
-      <!-- Bento Grid Principal (Ficha a la izquierda + Visor a la derecha) -->
+      <!-- Bento Grid Principal -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- COLUMNA IZQUIERDA (Span 4): Ficha Técnica y Lista de Láminas -->
+        <!-- COLUMNA IZQUIERDA (Span 4) -->
         <div class="lg:col-span-4 flex flex-col gap-6">
 
           <!-- TARJETA 1: Ficha Técnica Principal -->
           <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/40">
-            <!-- Portada de la Obra -->
             <div class="relative overflow-hidden rounded-lg mb-4 h-36 bg-surface-container-high">
               <div class="w-full h-full bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80')"></div>
               <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/30 to-transparent"></div>
@@ -242,7 +251,6 @@
               </div>
             </div>
 
-            <!-- Datos Cuantitativos Rápidos -->
             <div class="grid grid-cols-3 gap-2 p-3 bg-surface-container-low rounded-lg mb-4 text-center">
               <div class="flex flex-col">
                 <span class="text-[11px] text-on-surface-variant">Área Total</span>
@@ -258,7 +266,6 @@
               </div>
             </div>
 
-            <!-- Propietarios y Contacto Rápido -->
             <div class="flex flex-col gap-3 pb-3 border-b border-surface-container-high/60">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-primary font-bold text-xs" id="avatar-propietarios">
@@ -270,7 +277,6 @@
                 </div>
               </div>
 
-              <!-- Botones de Acción de Contacto (Teléfono y WhatsApp) -->
               <div class="grid grid-cols-2 gap-2 mt-1">
                 <a id="btn-call" href="tel:+573001234567" class="flex items-center justify-center gap-1.5 py-2 px-3 rounded-full bg-surface-container-high hover:bg-secondary-container hover:text-on-secondary-container text-on-surface text-xs font-semibold transition-colors">
                   <span class="material-symbols-outlined text-[15px]">call</span>
@@ -283,7 +289,6 @@
               </div>
             </div>
 
-            <!-- Licencia & Marco Contractual -->
             <div class="pt-3 flex flex-col gap-2">
               <div class="flex items-center justify-between text-xs">
                 <span class="text-on-surface-variant">Radicación:</span>
@@ -296,7 +301,7 @@
             </div>
           </div>
 
-          <!-- TARJETA 2: Selector de Láminas y Clasificación por Áreas/Especialidades -->
+          <!-- TARJETA 2: Clasificación de Láminas -->
           <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/40">
             <div class="flex items-center justify-between mb-3">
               <div>
@@ -306,17 +311,12 @@
               <span class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface text-xs flex items-center justify-center font-bold" id="sheets-count">5</span>
             </div>
 
-            <!-- BOTONES DE CLASIFICACIÓN POR ÁREAS / ESPECIALIDADES -->
             <div class="flex items-center gap-1.5 overflow-x-auto pb-2 pt-1 mb-3 scrollbar-none" id="category-filter-bar">
-              <!-- Se generan dinámicamente con JS -->
             </div>
 
-            <!-- Lista de Láminas de la categoría activa -->
             <div class="flex flex-col gap-2" id="sheet-list">
-              <!-- Se genera dinámicamente con JS -->
             </div>
 
-            <!-- Botón para adjuntar plano a la categoría actual -->
             <button onclick="openUploadModal()" class="mt-3 w-full py-2.5 px-3 rounded-lg border-2 border-dashed border-outline-variant/60 hover:border-primary text-center text-xs text-on-surface-variant hover:text-primary flex items-center justify-center gap-2 transition-all">
               <span class="material-symbols-outlined text-[18px]">add_circle</span>
               <span id="btn-upload-label">Subir nuevo plano</span>
@@ -325,12 +325,11 @@
 
         </div>
 
-        <!-- COLUMNA DERECHA (Span 8): Visor Interactivo de Planos -->
+        <!-- COLUMNA DERECHA (Span 8): Visor -->
         <div class="lg:col-span-8 flex flex-col gap-4">
 
           <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/40 flex flex-col min-h-[600px]">
             
-            <!-- Barra Superior del Visor -->
             <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-surface-container-high/60">
               <div class="flex items-center gap-2.5">
                 <span class="w-3 h-3 rounded-full bg-secondary"></span>
@@ -349,23 +348,19 @@
                 </div>
               </div>
 
-              <!-- Controles del Visor (Zoom + Paginación Multipágina para PDF) -->
               <div class="flex flex-wrap items-center gap-2">
-                
-                <!-- Navegador de Páginas / Plantas (visible solo si es PDF) -->
                 <div id="pdf-pagination-bar" class="hidden items-center bg-secondary-container/70 rounded-full px-2.5 py-1 text-xs font-semibold text-primary gap-1.5 shadow-sm">
-                  <button onclick="prevPdfPage()" id="btn-pdf-prev" class="w-6 h-6 rounded-full hover:bg-surface-container-lowest flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Planta / Página anterior">
+                  <button onclick="prevPdfPage()" id="btn-pdf-prev" class="w-6 h-6 rounded-full hover:bg-surface-container-lowest flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                     <span class="material-symbols-outlined text-[16px]">chevron_left</span>
                   </button>
                   <span class="text-[11px] px-1 select-none">
                     Planta <strong id="pdf-current-page">1</strong> / <span id="pdf-total-pages">1</span>
                   </span>
-                  <button onclick="nextPdfPage()" id="btn-pdf-next" class="w-6 h-6 rounded-full hover:bg-surface-container-lowest flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Siguiente Planta / Página">
+                  <button onclick="nextPdfPage()" id="btn-pdf-next" class="w-6 h-6 rounded-full hover:bg-surface-container-lowest flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                     <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                   </button>
                 </div>
 
-                <!-- Botones de Zoom -->
                 <div class="flex items-center bg-surface-container-low rounded-full p-1 shadow-sm gap-1">
                   <button onclick="zoomIn()" class="w-8 h-8 rounded-full bg-surface-container-lowest text-on-surface flex items-center justify-center hover:bg-surface-container-high transition-transform active:scale-90" title="Acercar (+)">
                     <span class="material-symbols-outlined text-[18px]">zoom_in</span>
@@ -381,35 +376,27 @@
                     <span class="material-symbols-outlined text-[18px]">fullscreen</span>
                   </button>
                 </div>
-
               </div>
             </div>
 
-            <!-- Escenario / Lienzo del Visor -->
             <div id="plan-viewport" class="relative flex-1 w-full bg-surface-bright rounded-lg overflow-auto flex items-center justify-center p-4 min-h-[460px] border border-surface-container-high/40 pdf-canvas-container">
-              
-              <!-- Cuadrícula sutil de fondo -->
               <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#163328 1px, transparent 1px); background-size: 24px 24px;"></div>
 
-              <!-- Indicador de carga -->
               <div id="viewer-loading" class="hidden absolute inset-0 bg-surface/70 backdrop-blur-sm z-30 flex-col items-center justify-center gap-2">
                 <span class="w-7 h-7 border-3 border-primary border-t-transparent rounded-full animate-spin"></span>
                 <span class="text-xs font-semibold text-primary">Cargando plano arquitectónico...</span>
               </div>
 
-              <!-- Contenedor del contenido -->
               <div id="plan-stage" class="relative w-full h-full flex items-center justify-center transition-transform duration-200 origin-center select-none">
-                <!-- Se inserta dinámicamente -->
               </div>
 
-              <!-- Convenciones Flotantes -->
               <div class="absolute bottom-3 left-3 right-3 sm:right-auto flex flex-wrap items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-surface-container-lowest/90 backdrop-blur-md shadow-sm border border-outline-variant/30 text-xs">
                 <span class="text-on-surface-variant uppercase text-[10px] font-bold">Convenciones:</span>
                 <div class="flex items-center gap-1.5 text-on-surface text-[11px]">
-                  <span class="w-2 h-2 rounded-full bg-primary"></span> Muros / Mampostería
+                  <span class="w-2 h-2 rounded-full bg-primary"></span> Muros
                 </div>
                 <div class="flex items-center gap-1.5 text-on-surface text-[11px]">
-                  <span class="w-2 h-2 rounded-full bg-secondary"></span> Carpintería & Deck
+                  <span class="w-2 h-2 rounded-full bg-secondary"></span> Carpintería
                 </div>
                 <div class="flex items-center gap-1.5 text-on-surface text-[11px]">
                   <span class="w-2 h-2 rounded-full bg-cyan-600"></span> Hidrosanitarios
@@ -421,10 +408,8 @@
                   <span class="w-2 h-2 rounded-full bg-orange-500"></span> Gas
                 </div>
               </div>
-
             </div>
 
-            <!-- Nota Técnica de Campo -->
             <div class="mt-4 p-3.5 rounded-lg bg-surface-container-low flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0">
@@ -450,10 +435,10 @@
 
     </main>
 
-    <!-- =================================================== -->
-    <!-- VISTA 2: ELABORAR PRESUPUESTO Y COSTOS (FUNCIÓN 2)  -->
-    <!-- =================================================== -->
-    <main id="view-presupuesto" class="view-section hidden flex-col gap-6">
+    <!-- ========================================================================= -->
+    <!-- VISTA 2: TABLA DE PRESUPUESTO POR CAPÍTULOS Y MEDIDAS (LARGO, ANCHO, ALTO) -->
+    <!-- ========================================================================= -->
+    <main id="view-presupuesto" class="view-section flex flex-col gap-6">
 
       <!-- TARJETAS SUPERIORES DE RESUMEN PRESUPUESTAL -->
       <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -461,14 +446,14 @@
         <!-- Tarjeta 1: Total Presupuestado Estimado (con Desperdicio) -->
         <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/40 flex items-center justify-between transition-transform duration-200 hover:-translate-y-0.5">
           <div class="flex flex-col gap-1">
-            <span class="text-[11px] uppercase tracking-wider font-semibold text-on-surface-variant">Presupuesto Estimado</span>
+            <span class="text-[11px] uppercase tracking-wider font-semibold text-on-surface-variant">Costo Total Obra</span>
             <div class="flex items-baseline gap-1">
-              <span class="text-xl sm:text-2xl font-bold text-on-surface" id="stat-presupuesto-total">$0</span>
+              <span class="text-xl sm:text-2xl font-bold text-primary" id="stat-presupuesto-total">$0</span>
               <span class="text-[11px] font-semibold text-outline">COP</span>
             </div>
             <span class="text-xs text-secondary flex items-center gap-1 mt-0.5">
               <span class="material-symbols-outlined text-[14px]">verified</span>
-              Cantidades + Desperdicio ajustado
+              Sumatoria de todos los capítulos
             </span>
           </div>
           <div class="w-12 h-12 rounded-full bg-secondary-container text-primary flex items-center justify-center shrink-0">
@@ -476,21 +461,21 @@
           </div>
         </div>
 
-        <!-- Tarjeta 2: Costo Directo Base (Sin Desperdicio) -->
+        <!-- Tarjeta 2: Volumen Total Estimado en m³ -->
         <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/40 flex items-center justify-between transition-transform duration-200 hover:-translate-y-0.5">
           <div class="flex flex-col gap-1">
-            <span class="text-[11px] uppercase tracking-wider font-semibold text-on-surface-variant">Costo Directo Base</span>
+            <span class="text-[11px] uppercase tracking-wider font-semibold text-on-surface-variant">Volumen Total Concreto</span>
             <div class="flex items-baseline gap-1">
-              <span class="text-xl sm:text-2xl font-bold text-on-surface" id="stat-costo-base">$0</span>
-              <span class="text-[11px] font-semibold text-outline">COP</span>
+              <span class="text-xl sm:text-2xl font-bold text-on-surface" id="stat-volumen-total">0.00</span>
+              <span class="text-xs font-bold text-secondary">m³</span>
             </div>
             <span class="text-xs text-on-surface-variant flex items-center gap-1 mt-0.5">
               <span class="material-symbols-outlined text-[14px] text-secondary">straighten</span>
-              Medición neta en planos
+              Zapatas + Vigas + Columnas
             </span>
           </div>
           <div class="w-12 h-12 rounded-full bg-surface-container-low text-secondary flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[24px]">pie_chart</span>
+            <span class="material-symbols-outlined text-[24px]">view_in_ar</span>
           </div>
         </div>
 
@@ -499,7 +484,7 @@
           <div class="flex flex-col gap-1 z-10">
             <div class="flex items-center gap-1.5">
               <span class="text-[11px] uppercase tracking-wider font-semibold text-primary-fixed-dim">Reserva Desperdicio</span>
-              <span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-2 py-0.2 rounded-full" id="stat-desperdicio-promedio">6.8% Prom.</span>
+              <span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-2 py-0.2 rounded-full" id="stat-desperdicio-promedio">5.0% Prom.</span>
             </div>
             <div class="flex items-baseline gap-1">
               <span class="text-xl sm:text-2xl font-bold text-on-primary" id="stat-costo-desperdicio">$0</span>
@@ -507,7 +492,7 @@
             </div>
             <span class="text-xs text-primary-fixed-dim flex items-center gap-1 mt-0.5">
               <span class="material-symbols-outlined text-[14px] text-primary-fixed">recycling</span>
-              Margen de merma protegido
+              Margen de merma de materiales
             </span>
           </div>
           <div class="w-12 h-12 rounded-full bg-white/10 text-on-primary flex items-center justify-center shrink-0 z-10">
@@ -515,41 +500,41 @@
           </div>
         </div>
 
-        <!-- Tarjeta 4: Botón Acción Rápida "+ Nueva Actividad" -->
+        <!-- Tarjeta 4: Botones Acciones Rápidas -->
         <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/40 flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] uppercase tracking-wider font-semibold text-on-surface-variant">Gestión de Obra</span>
+            <span class="text-[11px] uppercase tracking-wider font-semibold text-on-surface-variant">Acciones</span>
             <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
           </div>
           <div class="flex items-center gap-2 mt-2">
             <button onclick="openApuModal()" class="flex-1 bg-primary hover:bg-primary-container text-on-primary text-xs font-bold py-2.5 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95">
               <span class="material-symbols-outlined text-[16px]">add_circle</span>
-              <span>+ Agregar Partida</span>
+              <span>+ Nuevo Ítem</span>
             </button>
-            <button onclick="exportBudgetToJSON()" class="w-9 h-9 rounded-full bg-surface-container-low hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors" title="Descargar Respaldo JSON">
-              <span class="material-symbols-outlined text-[18px]">download</span>
+            <button onclick="exportBudgetToCSV()" class="w-9 h-9 rounded-full bg-surface-container-low hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors" title="Exportar Tabla a Excel / CSV">
+              <span class="material-symbols-outlined text-[18px]">table_view</span>
             </button>
           </div>
         </div>
 
       </section>
 
-      <!-- BARRA DE FILTRADO POR CAPÍTULOS DE OBRA -->
+      <!-- BARRA DE FILTRADO RÁPIDO DE CAPÍTULOS -->
       <section class="flex flex-wrap items-center justify-between gap-3 pt-2">
         <div class="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-none" id="budget-chapter-filter-bar">
-          <!-- Filtros de capítulos generados dinámicamente -->
+          <!-- Filtros dinámicos -->
         </div>
 
         <div class="flex items-center gap-2 text-xs text-on-surface-variant">
-          <span class="bg-surface-container-lowest px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 border border-surface-container-high/60">
-            <span class="w-2 h-2 rounded-full bg-secondary"></span>
-            Partidas: <strong id="budget-count-label" class="text-on-surface">6 registradas</strong>
-          </span>
+          <button onclick="promptNewChapter()" class="px-3 py-1.5 rounded-full bg-surface-container-lowest text-primary font-bold text-xs border border-primary/20 shadow-sm hover:bg-secondary-container transition-all flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            Nuevo Capítulo
+          </button>
         </div>
       </section>
 
-      <!-- LISTADO DE ACTIVIDADES / APUS EN TARJETAS BENTO -->
-      <section class="flex flex-col gap-4" id="budget-items-container">
+      <!-- TABLAS DE CÁLCULO POR CAPÍTULOS DE OBRA (LARGO, ANCHO, ALTO, VOLUMEN, COSTO) -->
+      <section class="flex flex-col gap-6" id="budget-chapters-tables-container">
         <!-- Se genera dinámicamente con JS -->
       </section>
 
@@ -609,20 +594,20 @@
 
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL: AGREGAR / EDITAR PARTIDA (APU) - FUNCIÓN 2 -->
-  <!-- ========================================== -->
+  <!-- ========================================================================= -->
+  <!-- MODAL: AGREGAR / EDITAR ÍTEM CON MEMORIA DE CÁLCULO (LARGO, ANCHO, ALTO)  -->
+  <!-- ========================================================================= -->
   <div id="modal-apu" class="fixed inset-0 z-50 bg-on-surface/40 backdrop-blur-sm hidden items-center justify-center p-4">
     <div class="bg-surface-container-lowest rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-surface-container-high/60 max-h-[90vh] overflow-y-auto">
       
       <div class="flex items-center justify-between pb-3 border-b border-surface-container-high/60">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-full bg-secondary-container text-primary flex items-center justify-center">
-            <span class="material-symbols-outlined text-[18px]">calculate</span>
+            <span class="material-symbols-outlined text-[18px]">straighten</span>
           </div>
           <div>
-            <h3 class="text-base font-bold text-on-surface" id="modal-apu-title">Nueva Actividad / Partida de Obra</h3>
-            <p class="text-xs text-on-surface-variant">Ingresa cantidades, precios y porcentaje de desperdicio</p>
+            <h3 class="text-base font-bold text-on-surface" id="modal-apu-title">Nuevo Ítem / Medición de Obra</h3>
+            <p class="text-xs text-on-surface-variant">Largo × Ancho × Alto = Volumen × Precio Unitario</p>
           </div>
         </div>
         <button onclick="closeModal('modal-apu')" class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center">
@@ -632,81 +617,90 @@
 
       <form id="form-apu" onsubmit="handleSaveApu(event)" class="mt-4 flex flex-col gap-3.5 text-xs">
         
-        <!-- Nombre de la Actividad -->
-        <div>
-          <label class="font-bold text-on-surface mb-1 block">Nombre de la Actividad *</label>
-          <input type="text" id="apu-actividad" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium" placeholder="Ej. Mampostería en Bloque N°4 con pega 1:4" />
-        </div>
-
         <!-- Capítulo de Obra -->
         <div>
-          <label class="font-bold text-on-surface mb-1 block">Capítulo / Fase de Obra *</label>
-          <select id="apu-capitulo" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium">
-            <option value="Preliminares y Cimentación">🏗️ Preliminares y Cimentación</option>
-            <option value="Estructura y Concretos">🏛️ Estructura y Concretos</option>
-            <option value="Mampostería y Muros">🧱 Mampostería y Muros</option>
-            <option value="Instalaciones Hidráulicas y Eléctricas">💧⚡ Instalaciones (Hidro, Eléctrica, Gas)</option>
-            <option value="Pañetes y Acabados">✨ Pañetes, Revoques y Acabados</option>
-            <option value="Cubiertas y Techos">🏠 Cubiertas y Techos</option>
-            <option value="Otros">📦 Otros conceptos</option>
-          </select>
-        </div>
-
-        <!-- Material Principal / Especificación -->
-        <div>
-          <label class="font-bold text-on-surface mb-1 block">Material Principal Adquirido *</label>
-          <input type="text" id="apu-material" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface" placeholder="Ej. Bloque tolete arcilla + Cemento gris + Arena lavada" />
-        </div>
-
-        <!-- Cantidad Base y Unidad de Medida -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="font-bold text-on-surface mb-1 block">Cantidad de Obra (Plano) *</label>
-            <input type="number" step="any" min="0.01" id="apu-cantidad" required oninput="calculateModalApuPreview()" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold" placeholder="Ej. 185" />
-          </div>
-          <div>
-            <label class="font-bold text-on-surface mb-1 block">Unidad de Medida *</label>
-            <select id="apu-unidad" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium">
-              <option value="m²">m² (Metro cuadrado)</option>
-              <option value="m³">m³ (Metro cúbico)</option>
-              <option value="ml">ml (Metro lineal)</option>
-              <option value="kg">kg (Kilogramo)</option>
-              <option value="un">un (Unidades)</option>
-              <option value="bto">bto (Bultos)</option>
-              <option value="gl">gl (Global / Lote)</option>
-              <option value="viaje">viaje (Volqueta / Viaje)</option>
+          <label class="font-bold text-on-surface mb-1 block">Capítulo de Obra *</label>
+          <div class="flex gap-2">
+            <select id="apu-capitulo" required class="flex-1 px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-semibold">
+              <!-- Se puebla dinámicamente -->
             </select>
+            <button type="button" onclick="promptNewChapterInModal()" class="px-3 py-2 bg-surface-container-high hover:bg-secondary-container text-on-surface rounded-lg text-xs font-bold" title="Crear nuevo capítulo">
+              + Nuevo
+            </button>
           </div>
         </div>
 
-        <!-- Precio Unitario y Porcentaje de Desperdicio -->
+        <!-- Actividad General e Identificador del Elemento -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="font-bold text-on-surface mb-1 block">Precio Unitario ($ COP) *</label>
-            <input type="number" step="1" min="0" id="apu-precio" required oninput="calculateModalApuPreview()" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold" placeholder="Ej. 68000" />
+            <label class="font-bold text-on-surface mb-1 block">Actividad / Partida *</label>
+            <input type="text" id="apu-actividad" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium" placeholder="Ej. Zapatas en Concreto 3000 PSI / Vigas" />
           </div>
           <div>
-            <label class="font-bold text-on-surface mb-1 block">% Desperdicio Estimado *</label>
+            <label class="font-bold text-on-surface mb-1 block">Identificador / Elemento *</label>
+            <input type="text" id="apu-elemento" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-primary font-bold" placeholder="Ej. Z-1, Z-2, V-101, C-1..." />
+          </div>
+        </div>
+
+        <!-- Descripción / Material -->
+        <div>
+          <label class="font-bold text-on-surface mb-1 block">Material / Especificación Técnica</label>
+          <input type="text" id="apu-material" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface" placeholder="Ej. Concreto premezclado 3000 PSI + Acero 60ksi" />
+        </div>
+
+        <!-- CASILLAS DE MEDIDAS GEOMÉTRICAS: VECES, LARGO, ANCHO, ALTO -->
+        <div class="p-3 bg-surface-container-low rounded-xl border border-surface-container-high">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-secondary block mb-2">
+            Memoria de Cálculo de Volumen
+          </span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div>
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">N° Veces (Cant) *</label>
+              <input type="number" step="1" min="1" id="apu-veces" required oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1" value="1" />
+            </div>
+            <div>
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Largo (m) *</label>
+              <input type="number" step="0.01" min="0.01" id="apu-largo" required oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1.20" />
+            </div>
+            <div>
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Ancho (m) *</label>
+              <input type="number" step="0.01" min="0.01" id="apu-ancho" required oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1.20" />
+            </div>
+            <div>
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Alto (m) *</label>
+              <input type="number" step="0.01" min="0.01" id="apu-alto" required oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="0.40" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Precio Unitario y Desperdicio -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Valor por Unidad ($ COP / m³) *</label>
+            <input type="number" step="1" min="0" id="apu-precio" required oninput="calculateModalApuPreview()" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold" placeholder="Ej. 650000" />
+          </div>
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">% Desperdicio Estimado</label>
             <div class="relative">
-              <input type="number" step="0.1" min="0" max="100" id="apu-desperdicio" required oninput="calculateModalApuPreview()" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold pr-8" placeholder="Ej. 7.5" value="5" />
+              <input type="number" step="0.1" min="0" max="100" id="apu-desperdicio" required oninput="calculateModalApuPreview()" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold pr-8" placeholder="5" value="5" />
               <span class="absolute right-3 top-2.5 font-bold text-outline">%</span>
             </div>
           </div>
         </div>
 
-        <!-- TARJETA DE CÁLCULO EN TIEMPO REAL (PRD FUNCIÓN 2) -->
+        <!-- TARJETA DE CÁLCULO EN VIVO -->
         <div class="p-3.5 bg-secondary-container/50 border border-secondary-container rounded-xl flex flex-col gap-1.5 mt-1">
           <div class="flex items-center justify-between text-xs">
-            <span class="text-on-secondary-container font-semibold">Cantidad Ajustada (+ Desperdicio):</span>
-            <span class="font-bold text-primary" id="preview-cantidad-ajustada">0.00 un</span>
+            <span class="text-on-secondary-container font-semibold">Fórmula de Volumen:</span>
+            <span class="font-mono text-primary font-bold" id="preview-formula">1 × 0.00 × 0.00 × 0.00 = 0.00 m³</span>
           </div>
           <div class="flex items-center justify-between text-xs">
-            <span class="text-on-secondary-container font-semibold">Costo Base sin desperdicio:</span>
-            <span class="font-medium text-on-surface" id="preview-costo-base">$0 COP</span>
+            <span class="text-on-secondary-container font-semibold">Volumen Final (+ Desperdicio):</span>
+            <span class="font-bold text-primary" id="preview-volumen-ajustado">0.00 m³</span>
           </div>
           <div class="flex items-center justify-between text-xs pt-1.5 border-t border-secondary-container">
-            <span class="text-on-secondary-container font-bold">Costo Total Estimado:</span>
-            <span class="text-sm font-bold text-primary" id="preview-costo-estimado">$0 COP</span>
+            <span class="text-on-secondary-container font-bold">Costo Total (Volumen × Valor Unitario):</span>
+            <span class="text-base font-bold text-primary" id="preview-costo-total">$0 COP</span>
           </div>
         </div>
 
@@ -717,7 +711,7 @@
           </button>
           <button type="submit" class="px-5 py-2 rounded-full bg-primary text-on-primary font-semibold shadow-md hover:opacity-95 flex items-center gap-1.5">
             <span class="material-symbols-outlined text-[16px]">check</span>
-            Guardar Partida
+            Guardar en Tabla
           </button>
         </div>
 
@@ -748,7 +742,6 @@
       </div>
 
       <form id="form-subir-plano" onsubmit="handleUploadModalSubmit(event)" class="mt-4 flex flex-col gap-4 text-xs">
-        
         <div>
           <label class="font-bold text-on-surface mb-1 block">Especialidad / Área de Obra *</label>
           <select id="upload-categoria" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium">
@@ -890,9 +883,9 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- JAVASCRIPT: LÓGICA DE PRESUPUESTO & PLANOS -->
-  <!-- ========================================== -->
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: LÓGICA DE PRESUPUESTO POR CAPÍTULOS CON MEMORIA DE CÁLCULO    -->
+  <!-- ========================================================================= -->
   <script>
     // Especialidades / Categorías de Planos
     const CATEGORIAS = [
@@ -904,17 +897,151 @@
       { id: "gas", nombre: "Gas", emoji: "🔥", icono: "local_fire_department", badgeClass: "bg-orange-100 text-orange-800" }
     ];
 
-    // Capítulos para el Presupuesto
-    const CAPITULOS_PRESUPUESTO = [
-      { id: "todos", nombre: "Todas las Partidas", icono: "receipt_long" },
-      { id: "Preliminares y Cimentación", nombre: "Cimentación", icono: "foundation" },
-      { id: "Estructura y Concretos", nombre: "Estructura", icono: "domain" },
-      { id: "Mampostería y Muros", nombre: "Mampostería", icono: "layers" },
-      { id: "Instalaciones Hidráulicas y Eléctricas", nombre: "Instalaciones", icono: "water_drop" },
-      { id: "Pañetes y Acabados", nombre: "Acabados", icono: "carpenter" }
+    // Capítulos de Obra por Defecto
+    const DEFAULT_CHAPTERS = [
+      "01. Preliminares",
+      "02. Cimentación",
+      "03. Estructura",
+      "04. Mampostería y Muros",
+      "05. Instalaciones",
+      "06. Acabados"
     ];
 
-    // Datos por defecto del proyecto (Casa Valparaíso)
+    // Partidas con Memorias de Medidas (Largo, Ancho, Alto, Volumen, Costo Total)
+    const DEFAULT_BUDGET = [
+      // 01. Preliminares
+      {
+        id: "item-101",
+        capitulo: "01. Preliminares",
+        actividad: "Excavación Manual para Cimientos y Zapatas",
+        elemento: "EX-01",
+        material: "Excavación en tierra común a mano",
+        veces: 1,
+        largo: 35.0,
+        ancho: 0.80,
+        alto: 1.10,
+        desperdicio: 0,
+        precioUnitario: 45000,
+        icono: "foundation"
+      },
+      // 02. Cimentación
+      {
+        id: "item-201",
+        capitulo: "02. Cimentación",
+        actividad: "Zapatas Aisladas en Concreto 3000 PSI",
+        elemento: "Z-1 (Esquineras)",
+        material: "Concreto premezclado 3000 PSI + Acero 60ksi",
+        veces: 4,
+        largo: 1.20,
+        ancho: 1.20,
+        alto: 0.40,
+        desperdicio: 5,
+        precioUnitario: 650000,
+        icono: "foundation"
+      },
+      {
+        id: "item-202",
+        capitulo: "02. Cimentación",
+        actividad: "Zapatas Aisladas en Concreto 3000 PSI",
+        elemento: "Z-2 (Intermedias)",
+        material: "Concreto premezclado 3000 PSI + Acero 60ksi",
+        veces: 6,
+        largo: 1.00,
+        ancho: 1.00,
+        alto: 0.35,
+        desperdicio: 5,
+        precioUnitario: 650000,
+        icono: "foundation"
+      },
+      {
+        id: "item-203",
+        capitulo: "02. Cimentación",
+        actividad: "Zapatas Aisladas en Concreto 3000 PSI",
+        elemento: "Z-3 (Medianeras)",
+        material: "Concreto premezclado 3000 PSI + Acero 60ksi",
+        veces: 2,
+        largo: 1.40,
+        ancho: 1.40,
+        alto: 0.45,
+        desperdicio: 5,
+        precioUnitario: 650000,
+        icono: "foundation"
+      },
+      {
+        id: "item-204",
+        capitulo: "02. Cimentación",
+        actividad: "Vigas de Amarre y Confinamiento Cimiento",
+        elemento: "VA-01 (Longitudinal)",
+        material: "Concreto 3000 PSI + Flejes 3/8\"",
+        veces: 1,
+        largo: 28.50,
+        ancho: 0.30,
+        alto: 0.30,
+        desperdicio: 5,
+        precioUnitario: 680000,
+        icono: "foundation"
+      },
+      {
+        id: "item-205",
+        capitulo: "02. Cimentación",
+        actividad: "Vigas de Amarre y Confinamiento Cimiento",
+        elemento: "VA-02 (Transversal)",
+        material: "Concreto 3000 PSI + Flejes 3/8\"",
+        veces: 1,
+        largo: 18.20,
+        ancho: 0.30,
+        alto: 0.30,
+        desperdicio: 5,
+        precioUnitario: 680000,
+        icono: "foundation"
+      },
+      // 03. Estructura
+      {
+        id: "item-301",
+        capitulo: "03. Estructura",
+        actividad: "Columnas de Confinamiento en Concreto",
+        elemento: "C-1 (Pórticos)",
+        material: "Concreto 3000 PSI + 4 varillas 1/2\"",
+        veces: 8,
+        largo: 0.30,
+        ancho: 0.30,
+        alto: 2.70,
+        desperdicio: 5,
+        precioUnitario: 720000,
+        icono: "domain"
+      },
+      {
+        id: "item-302",
+        capitulo: "03. Estructura",
+        actividad: "Columnas de Confinamiento en Concreto",
+        elemento: "C-2 (Muros)",
+        material: "Concreto 3000 PSI + 4 varillas 3/8\"",
+        veces: 4,
+        largo: 0.25,
+        ancho: 0.25,
+        alto: 2.70,
+        desperdicio: 5,
+        precioUnitario: 720000,
+        icono: "domain"
+      },
+      // 04. Mampostería y Muros
+      {
+        id: "item-401",
+        capitulo: "04. Mampostería y Muros",
+        actividad: "Muros en Bloque de Arcilla Cocida N°4",
+        elemento: "M-01 (Muros Interiores)",
+        material: "Bloque arcilla tolete + Pega mortero 1:4",
+        veces: 1,
+        largo: 52.00,
+        ancho: 0.12,
+        alto: 2.60,
+        desperdicio: 8,
+        precioUnitario: 580000,
+        icono: "layers"
+      }
+    ];
+
+    // Datos por defecto del proyecto
     const DEFAULT_PROJECT = {
       nombre: "Casa Valparaíso",
       ubicacion: "Rionegro, Antioquia",
@@ -927,83 +1054,7 @@
       estado: "En Ejecución"
     };
 
-    // Partidas iniciales de ejemplo para Presupuesto (PRD Función 2)
-    const DEFAULT_BUDGET = [
-      {
-        id: "apu-01",
-        codigo: "01",
-        actividad: "Cimentación, Vigas de Amarre y Zapatas",
-        capitulo: "Preliminares y Cimentación",
-        material: "Concreto 3000 PSI premezclado + Acero corrugado 60ksi",
-        cantidad: 24,
-        unidad: "m³",
-        precioUnitario: 650000,
-        desperdicio: 5,
-        icono: "foundation"
-      },
-      {
-        id: "apu-02",
-        codigo: "02",
-        actividad: "Estructura: Columnas Pórtico y Losa Aligerada",
-        capitulo: "Estructura y Concretos",
-        material: "Cemento estructural + Casetón guadua + Malla electrosoldada",
-        cantidad: 132,
-        unidad: "m²",
-        precioUnitario: 145000,
-        desperdicio: 6,
-        icono: "domain"
-      },
-      {
-        id: "apu-03",
-        codigo: "03",
-        actividad: "Mampostería en Bloque de Arcilla Cocida N°4",
-        capitulo: "Mampostería y Muros",
-        material: "Bloque tolete N°4 (3,450 un) + Cemento gris UG + Arena lavada",
-        cantidad: 185,
-        unidad: "m²",
-        precioUnitario: 68000,
-        desperdicio: 8,
-        icono: "layers"
-      },
-      {
-        id: "apu-04",
-        codigo: "04",
-        actividad: "Instalaciones Hidráulicas, Sanitarias y Desagües",
-        capitulo: "Instalaciones Hidráulicas y Eléctricas",
-        material: "Tubería PVC Sanitaria 3\" y 4\", PVC Presión RDE 21 y accesorios",
-        cantidad: 1,
-        unidad: "gl",
-        precioUnitario: 8500000,
-        desperdicio: 5,
-        icono: "water_drop"
-      },
-      {
-        id: "apu-05",
-        codigo: "05",
-        actividad: "Red Eléctrica Residencial, Tomas y Cuadro de Cargas",
-        capitulo: "Instalaciones Hidráulicas y Eléctricas",
-        material: "Cableado calibre 10, 12, 14 AWG + Conduit 3/4\" + Tablero 8 circuitos",
-        cantidad: 1,
-        unidad: "gl",
-        precioUnitario: 7800000,
-        desperdicio: 5,
-        icono: "bolt"
-      },
-      {
-        id: "apu-06",
-        codigo: "06",
-        actividad: "Pañetes y Revoques Rústicos en Muros Interiores",
-        capitulo: "Pañetes y Acabados",
-        material: "Mortero pega 1:4 (Arena de peña cernida y cemento gris)",
-        cantidad: 280,
-        unidad: "m²",
-        precioUnitario: 26000,
-        desperdicio: 10,
-        icono: "carpenter"
-      }
-    ];
-
-    // Lámina vectorial SVG original
+    // Vector SVG de muestra
     const VECTOR_PLAN_HTML = `
       <div class="relative w-full max-w-[620px] transition-transform duration-200">
         <svg class="w-full h-auto text-on-surface drop-shadow-sm select-none" fill="none" viewBox="0 0 700 520" xmlns="http://www.w3.org/2000/svg">
@@ -1011,207 +1062,65 @@
           <path d="M70 70H330V150H70V70Z" fill="#F5F4EF" stroke="#727974" stroke-dasharray="2 3" stroke-width="1.5"></path>
           <text fill="#727974" font-size="11" font-weight="600" x="85" y="115">DECK EXTERIOR · MADERA TECA</text>
           <path d="M60 150H630V450H60V150Z" fill="#FFFFFF" stroke="#163328" stroke-width="3"></path>
-          
           <rect fill="#FAF9F5" height="135" stroke="#C1C8C3" stroke-width="1" width="220" x="75" y="165"></rect>
           <rect fill="#C2E8D5" height="55" rx="4" stroke="#2D4A3E" stroke-width="1.5" width="130" x="110" y="200"></rect>
           <circle cx="140" cy="227" r="8" stroke="#2D4A3E" stroke-width="1"></circle>
           <circle cx="175" cy="227" r="8" stroke="#2D4A3E" stroke-width="1"></circle>
           <text fill="#163328" font-size="10" font-weight="700" x="125" y="272">ISLA COCINA / GAS</text>
-
           <rect fill="#FAF9F5" height="175" stroke="#C1C8C3" stroke-width="1" width="295" x="320" y="165"></rect>
           <rect fill="#E9E8E3" height="60" rx="8" stroke="#727974" stroke-width="1" width="180" x="390" y="185"></rect>
           <rect fill="#FFFFFF" height="35" rx="3" stroke="#424844" stroke-width="1" width="120" x="420" y="260"></rect>
           <text fill="#424844" font-size="11" font-weight="600" x="440" y="282">SALA DE ESTAR</text>
-
           <path d="M60 320H320V450H60V320Z" fill="#FAF9F5" stroke="#163328" stroke-width="2"></path>
           <rect fill="#FFFFFF" height="90" rx="4" stroke="#727974" stroke-width="1.2" width="130" x="110" y="345"></rect>
           <text fill="#424844" font-size="11" font-weight="600" x="122" y="395">DORMITORIO 01</text>
-
           <rect fill="#F5F4EF" height="95" stroke="#163328" stroke-width="1.8" width="140" x="320" y="355"></rect>
           <circle cx="360" cy="400" fill="#FFFFFF" r="14" stroke="#436556" stroke-width="1.2"></circle>
           <text fill="#727974" font-size="9" font-weight="600" x="390" y="405">BAÑO PPAL</text>
-
           <rect fill="#FAF9F5" height="95" stroke="#163328" stroke-width="1.8" width="140" x="475" y="355"></rect>
           <text fill="#727974" font-size="10" font-weight="600" x="515" y="405">ESTUDIO</text>
-
           <line stroke="#C1C8C3" stroke-dasharray="3 3" stroke-width="0.8" x1="60" x2="60" y1="20" y2="480"></line>
           <circle cx="60" cy="15" fill="#FBF9F4" r="9" stroke="#424844" stroke-width="1"></circle>
           <text fill="#1B1C19" font-size="10" font-weight="700" x="57" y="18">A</text>
-          
           <line stroke="#C1C8C3" stroke-dasharray="3 3" stroke-width="0.8" x1="320" x2="320" y1="20" y2="480"></line>
           <circle cx="320" cy="15" fill="#FBF9F4" r="9" stroke="#424844" stroke-width="1"></circle>
           <text fill="#1B1C19" font-size="10" font-weight="700" x="317" y="18">B</text>
-
           <line stroke="#C1C8C3" stroke-dasharray="3 3" stroke-width="0.8" x1="630" x2="630" y1="20" y2="480"></line>
           <circle cx="630" cy="15" fill="#FBF9F4" r="9" stroke="#424844" stroke-width="1"></circle>
           <text fill="#1B1C19" font-size="10" font-weight="700" x="626" y="18">C</text>
-
           <g transform="translate(620, 75)">
             <circle cx="0" cy="0" fill="#FFFFFF" r="16" stroke="#424844" stroke-width="1"></circle>
             <path d="M0 -12L5 2H-5L0 -12Z" fill="#163328"></path>
             <text fill="#163328" font-size="9" font-weight="700" x="-4" y="12">N</text>
           </g>
         </svg>
-
-        <div class="absolute top-[61%] left-[45%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer" title="Eje B-2 Mampostería en proceso">
-          <span class="relative flex h-7 w-7 items-center justify-center">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-40"></span>
-            <span class="relative inline-flex rounded-full h-6 w-6 bg-primary text-on-primary items-center justify-center shadow-lg border-2 border-surface-container-lowest">
-              <span class="material-symbols-outlined text-[13px]">handyman</span>
-            </span>
-          </span>
-        </div>
-
-        <div class="absolute top-[43%] left-[26%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer" title="Punto Gas Isla Cocina - Revisión">
-          <span class="relative flex h-7 w-7 items-center justify-center">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-40"></span>
-            <span class="relative inline-flex rounded-full h-6 w-6 bg-error text-on-error items-center justify-center shadow-lg border-2 border-surface-container-lowest">
-              <span class="material-symbols-outlined text-[13px]">local_fire_department</span>
-            </span>
-          </span>
-        </div>
       </div>
     `;
 
-    // Láminas precargadas con las 5 especialidades
+    // Láminas de ejemplo
     const DEFAULT_SHEETS = [
-      {
-        id: "sheet-A01",
-        categoria: "arquitectonico",
-        codigo: "A-01",
-        nombre: "A-01 Arquitectónico",
-        subtitulo: "Planta Nivel 1 + Cuadro de Áreas",
-        tipo: "vector",
-        icono: "architecture",
-        tamano: "Vectorial · 1:50",
-        activo: true
-      },
-      {
-        id: "sheet-E01",
-        categoria: "estructural",
-        codigo: "E-01",
-        nombre: "E-01 Cimentación",
-        subtitulo: "Vigas de amarre, zapatas y pedestales",
-        tipo: "vector",
-        icono: "foundation",
-        tamano: "Vectorial · 1:50",
-        activo: false
-      },
-      {
-        id: "sheet-H01",
-        categoria: "hidrosanitario",
-        codigo: "H-01",
-        nombre: "H-01 Hidrosanitario",
-        subtitulo: "Red agua potable y desagües",
-        tipo: "vector",
-        icono: "water_drop",
-        tamano: "Vectorial · 1:50",
-        activo: false
-      },
-      {
-        id: "sheet-EL01",
-        categoria: "electrico",
-        codigo: "EL-01",
-        nombre: "EL-01 Red Eléctrica",
-        subtitulo: "Circuitos, iluminación y tomas",
-        tipo: "vector",
-        icono: "bolt",
-        tamano: "Vectorial · 1:50",
-        activo: false
-      },
-      {
-        id: "sheet-G01",
-        categoria: "gas",
-        codigo: "G-01",
-        nombre: "G-01 Red de Gas",
-        subtitulo: "Tubería pe-al-pe e isométrico",
-        tipo: "vector",
-        icono: "local_fire_department",
-        tamano: "Vectorial · 1:50",
-        activo: false
-      }
+      { id: "sheet-A01", categoria: "arquitectonico", codigo: "A-01", nombre: "A-01 Arquitectónico", subtitulo: "Planta Nivel 1 + Cuadro de Áreas", tipo: "vector", icono: "architecture", tamano: "Vectorial · 1:50", activo: true },
+      { id: "sheet-E01", categoria: "estructural", codigo: "E-01", nombre: "E-01 Cimentación", subtitulo: "Zapatas Z-1, Z-2 y Vigas", tipo: "vector", icono: "foundation", tamano: "Vectorial · 1:50", activo: false }
     ];
 
-    // IndexedDB para archivos de planos
-    const DB_NAME = "ObraControlDB";
-    const STORE_NAME = "planos_files";
-
-    function openDB() {
-      return new Promise((resolve) => {
-        if (!window.indexedDB) {
-          resolve(null);
-          return;
-        }
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onupgradeneeded = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME, { keyPath: "id" });
-          }
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-      });
-    }
-
-    async function saveFileToDB(id, dataUrl) {
-      try {
-        const db = await openDB();
-        if (!db) return false;
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        tx.objectStore(STORE_NAME).put({ id, dataUrl });
-        return new Promise((resolve) => {
-          tx.oncomplete = () => resolve(true);
-          tx.onerror = () => resolve(false);
-        });
-      } catch (err) {
-        return false;
-      }
-    }
-
-    async function getFileFromDB(id) {
-      try {
-        const db = await openDB();
-        if (!db) return null;
-        const tx = db.transaction(STORE_NAME, "readonly");
-        const req = tx.objectStore(STORE_NAME).get(id);
-        return new Promise((resolve) => {
-          req.onsuccess = () => resolve(req.result ? req.result.dataUrl : null);
-          req.onerror = () => resolve(null);
-        });
-      } catch (err) {
-        return null;
-      }
-    }
-
-    async function deleteFileFromDB(id) {
-      try {
-        const db = await openDB();
-        if (!db) return;
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        tx.objectStore(STORE_NAME).delete(id);
-      } catch (err) {}
-    }
-
     // ==========================================
-    // ESTADO GLOBAL DE LA APLICACIÓN
+    // ESTADO GLOBAL
     // ==========================================
     let appProject = JSON.parse(localStorage.getItem('obracontrol_project')) || DEFAULT_PROJECT;
     let appSheets = JSON.parse(localStorage.getItem('obracontrol_sheets')) || DEFAULT_SHEETS;
-    let appBudget = JSON.parse(localStorage.getItem('obracontrol_budget')) || DEFAULT_BUDGET;
+    let appChapters = JSON.parse(localStorage.getItem('obracontrol_chapters')) || DEFAULT_CHAPTERS;
+    let appBudget = JSON.parse(localStorage.getItem('obracontrol_budget_calc')) || DEFAULT_BUDGET;
 
     let activeCategoryFilter = "todos";
     let activeBudgetChapterFilter = "todos";
-    let editingApuId = null; // ID cuando se edita una partida
-    
-    // Variables para el Visor PDF multipágina
+    let editingApuId = null;
+
     let currentZoom = 1;
     let currentPdfDoc = null;
     let currentPdfPageNum = 1;
     let totalPdfPages = 1;
     let inMemoryFiles = {};
 
-    // Formateador de moneda colombiana (COP)
     function formatCOP(num) {
       return new Intl.NumberFormat('es-CO', {
         style: 'currency',
@@ -1220,7 +1129,6 @@
       }).format(num || 0);
     }
 
-    // Inicializar UI al cargar
     document.addEventListener("DOMContentLoaded", () => {
       renderProjectInfo();
       renderCategoryFilters();
@@ -1229,236 +1137,306 @@
       renderBudgetView();
     });
 
-    // ==========================================
-    // LÓGICA DE LA FUNCIÓN 2: PRESUPUESTO
-    // ==========================================
+    // =========================================================================
+    // LÓGICA DE LA TABLA DE CANTIDADES Y PRESUPUESTO (FUNCIÓN 2)
+    // =========================================================================
 
     function renderBudgetView() {
       renderBudgetMetrics();
-      renderBudgetFilters();
-      renderBudgetList();
+      renderBudgetChapterFilters();
+      renderBudgetTables();
+      populateChapterDropdown();
     }
 
-    // 1. Métricas Superiores
+    // Métricas Superiores
     function renderBudgetMetrics() {
-      let totalPresupuesto = 0;
+      let totalCostoObra = 0;
       let totalCostoBase = 0;
-      let totalCostoDesperdicio = 0;
+      let totalVolumen = 0;
 
       appBudget.forEach(item => {
-        const cantidad = Number(item.cantidad) || 0;
-        const precio = Number(item.precioUnitario) || 0;
+        const veces = Number(item.veces) || 1;
+        const largo = Number(item.largo) || 0;
+        const ancho = Number(item.ancho) || 0;
+        const alto = Number(item.alto) || 0;
         const desp = Number(item.desperdicio) || 0;
+        const pu = Number(item.precioUnitario) || 0;
 
-        const cantidadAjustada = cantidad * (1 + (desp / 100));
-        const costoEstimado = cantidadAjustada * precio;
-        const costoBase = cantidad * precio;
+        const volBase = veces * largo * ancho * alto;
+        const volAjustado = volBase * (1 + (desp / 100));
+        const costo = volAjustado * pu;
+        const costoBase = volBase * pu;
 
-        totalPresupuesto += costoEstimado;
+        totalCostoObra += costo;
         totalCostoBase += costoBase;
-        totalCostoDesperdicio += (costoEstimado - costoBase);
+        totalVolumen += volAjustado;
       });
 
-      const promedioDesp = totalCostoBase > 0 
-        ? ((totalCostoDesperdicio / totalCostoBase) * 100).toFixed(1)
-        : "0.0";
+      const totalDesperdicioCosto = totalCostoObra - totalCostoBase;
+      const promDesp = totalCostoBase > 0 ? ((totalDesperdicioCosto / totalCostoBase) * 100).toFixed(1) : "0.0";
 
-      document.getElementById('stat-presupuesto-total').textContent = formatCOP(totalPresupuesto);
-      document.getElementById('stat-costo-base').textContent = formatCOP(totalCostoBase);
-      document.getElementById('stat-costo-desperdicio').textContent = formatCOP(totalCostoDesperdicio);
-      document.getElementById('stat-desperdicio-promedio').textContent = `+${promedioDesp}% Prom.`;
-      document.getElementById('budget-count-label').textContent = `${appBudget.length} partidas registradas`;
+      document.getElementById('stat-presupuesto-total').textContent = formatCOP(totalCostoObra);
+      document.getElementById('stat-volumen-total').textContent = totalVolumen.toFixed(2);
+      document.getElementById('stat-costo-desperdicio').textContent = formatCOP(totalDesperdicioCosto);
+      document.getElementById('stat-desperdicio-promedio').textContent = `+${promDesp}% Prom.`;
     }
 
-    // 2. Filtros por Capítulo
-    function renderBudgetFilters() {
+    // Filtros por Capítulo
+    function renderBudgetChapterFilters() {
       const container = document.getElementById('budget-chapter-filter-bar');
       container.innerHTML = "";
 
-      CAPITULOS_PRESUPUESTO.forEach(cap => {
-        const isSelected = (activeBudgetChapterFilter === cap.id);
-        const count = (cap.id === "todos")
-          ? appBudget.length
-          : appBudget.filter(i => i.capitulo === cap.id).length;
+      const allBtn = document.createElement('button');
+      allBtn.className = `flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all ${
+        activeBudgetChapterFilter === "todos" 
+          ? 'bg-primary text-on-primary shadow-sm' 
+          : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+      }`;
+      allBtn.onclick = () => setBudgetChapterFilter("todos");
+      allBtn.innerHTML = `<span>Todos los Capítulos</span> <span class="text-[10px] px-1.5 py-0.2 rounded-full ${activeBudgetChapterFilter === 'todos' ? 'bg-white/20 text-white' : 'bg-surface-container-high text-on-surface-variant'}">${appBudget.length}</span>`;
+      container.appendChild(allBtn);
 
+      appChapters.forEach(cap => {
+        const count = appBudget.filter(i => i.capitulo === cap).length;
+        const isSelected = (activeBudgetChapterFilter === cap);
         const btn = document.createElement('button');
         btn.className = `flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all ${
           isSelected 
-            ? 'bg-primary text-on-primary shadow-sm scale-100' 
+            ? 'bg-primary text-on-primary shadow-sm' 
             : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
         }`;
-        btn.onclick = () => setBudgetChapterFilter(cap.id);
-
-        btn.innerHTML = `
-          <span class="material-symbols-outlined text-[15px]">${cap.icono}</span>
-          <span>${cap.nombre}</span>
-          <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-surface-container-high text-on-surface-variant'}">${count}</span>
-        `;
+        btn.onclick = () => setBudgetChapterFilter(cap);
+        btn.innerHTML = `<span>${cap}</span> <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-surface-container-high text-on-surface-variant'}">${count}</span>`;
         container.appendChild(btn);
       });
     }
 
-    function setBudgetChapterFilter(capId) {
-      activeBudgetChapterFilter = capId;
-      renderBudgetFilters();
-      renderBudgetList();
+    function setBudgetChapterFilter(cap) {
+      activeBudgetChapterFilter = cap;
+      renderBudgetChapterFilters();
+      renderBudgetTables();
     }
 
-    // 3. Listado de Partidas con Cálculos
-    function renderBudgetList() {
-      const container = document.getElementById('budget-items-container');
+    // Renderizar Tablas Agrupadas por Capítulos
+    function renderBudgetTables() {
+      const container = document.getElementById('budget-chapters-tables-container');
       container.innerHTML = "";
 
-      const filtered = (activeBudgetChapterFilter === "todos")
-        ? appBudget
-        : appBudget.filter(i => i.capitulo === activeBudgetChapterFilter);
+      const chaptersToRender = (activeBudgetChapterFilter === "todos")
+        ? appChapters
+        : [activeBudgetChapterFilter];
 
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-12 px-4 bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant/60 shadow-sm">
-            <div class="w-12 h-12 rounded-full bg-surface-container-low text-secondary flex items-center justify-center mx-auto mb-2">
-              <span class="material-symbols-outlined text-[24px]">post_add</span>
+      chaptersToRender.forEach(capTitle => {
+        const items = appBudget.filter(i => i.capitulo === capTitle);
+        if (activeBudgetChapterFilter !== "todos" && items.length === 0) {
+          // Mostrar mensaje de vacío
+        }
+
+        // Subtotales del capítulo
+        let subtotalVolumen = 0;
+        let subtotalCosto = 0;
+
+        items.forEach(item => {
+          const v = Number(item.veces) || 1;
+          const l = Number(item.largo) || 0;
+          const an = Number(item.ancho) || 0;
+          const al = Number(item.alto) || 0;
+          const desp = Number(item.desperdicio) || 0;
+          const pu = Number(item.precioUnitario) || 0;
+
+          const volBase = v * l * an * al;
+          const volAjustado = volBase * (1 + (desp / 100));
+          const costo = volAjustado * pu;
+
+          subtotalVolumen += volAjustado;
+          subtotalCosto += costo;
+        });
+
+        // Contenedor del Capítulo
+        const chapterCard = document.createElement('div');
+        chapterCard.className = "bg-surface-container-lowest rounded-2xl shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 overflow-hidden";
+
+        // Encabezado del Capítulo
+        chapterCard.innerHTML = `
+          <div class="p-4 sm:p-5 bg-surface-container-low/70 border-b border-surface-container-high flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">folder</span>
+              </div>
+              <div>
+                <h3 class="text-sm sm:text-base font-bold text-on-surface">${capTitle}</h3>
+                <span class="text-xs text-on-surface-variant">${items.length} elemento(s) computado(s)</span>
+              </div>
             </div>
-            <h4 class="text-sm font-bold text-on-surface">No hay actividades en este capítulo</h4>
-            <p class="text-xs text-on-surface-variant mt-0.5">Comienza agregando la primera actividad con sus materiales y cálculo de desperdicio.</p>
-            <button onclick="openApuModal()" class="mt-4 px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 hover:opacity-95">
-              <span class="material-symbols-outlined text-[16px]">add_circle</span>
-              + Agregar Actividad
-            </button>
+
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <span class="text-[10px] uppercase font-bold text-outline block">Volumen Capítulo</span>
+                <span class="text-xs font-bold text-secondary">${subtotalVolumen.toFixed(2)} m³</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] uppercase font-bold text-outline block">Subtotal Capítulo</span>
+                <span class="text-sm sm:text-base font-bold text-primary">${formatCOP(subtotalCosto)}</span>
+              </div>
+              <button onclick="openApuModal('${capTitle}')" class="px-3 py-1.5 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-sm hover:opacity-95 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[15px]">add</span>
+                <span>+ Ítem</span>
+              </button>
+            </div>
           </div>
         `;
-        return;
-      }
 
-      filtered.forEach((item, index) => {
-        const cantidad = Number(item.cantidad) || 0;
-        const precio = Number(item.precioUnitario) || 0;
-        const desp = Number(item.desperdicio) || 0;
+        // Tabla de Cálculos
+        const tableContainer = document.createElement('div');
+        tableContainer.className = "overflow-x-auto";
 
-        // Fórmulas matemáticas del PRD Función 2
-        const cantidadAjustada = cantidad * (1 + (desp / 100));
-        const costoEstimado = cantidadAjustada * precio;
-        const costoBase = cantidad * precio;
-        const valorDesperdicio = costoEstimado - costoBase;
+        if (items.length === 0) {
+          tableContainer.innerHTML = `
+            <div class="text-center py-8 text-xs text-on-surface-variant">
+              No hay elementos registrados en ${capTitle}. Haz clic en <strong>+ Ítem</strong> para agregar zapatas, vigas o mediciones.
+            </div>
+          `;
+        } else {
+          let rowsHtml = "";
+          items.forEach((item, idx) => {
+            const v = Number(item.veces) || 1;
+            const l = Number(item.largo) || 0;
+            const an = Number(item.ancho) || 0;
+            const al = Number(item.alto) || 0;
+            const desp = Number(item.desperdicio) || 0;
+            const pu = Number(item.precioUnitario) || 0;
 
-        const card = document.createElement('article');
-        card.className = "bg-surface-container-lowest rounded-xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/40 flex flex-col gap-4 transition-all hover:shadow-[0_14px_34px_-8px_rgba(35,45,40,0.08)]";
+            const volBase = v * l * an * al;
+            const volAjustado = volBase * (1 + (desp / 100));
+            const costo = volAjustado * pu;
 
-        card.innerHTML = `
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-surface-container-high/60">
-            <div class="flex items-start sm:items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-secondary-container text-primary flex items-center justify-center shrink-0 font-bold text-xs">
-                ${index + 1 < 10 ? '0' + (index + 1) : index + 1}
-              </div>
-              <div class="flex flex-col">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h4 class="text-sm font-bold text-on-surface">${item.actividad}</h4>
-                  <span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[10px] font-semibold">
-                    ${item.capitulo}
+            rowsHtml += `
+              <tr class="border-b border-surface-container-high/40 hover:bg-surface-container-low/40 transition-colors">
+                <td class="py-3 px-4 font-bold text-primary whitespace-nowrap">
+                  <span class="px-2 py-0.5 rounded-md bg-secondary-container text-on-secondary-container text-[11px]">
+                    ${item.elemento || 'Ítem'}
                   </span>
-                </div>
-                <span class="text-xs text-on-surface-variant mt-0.5 flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[14px] text-secondary">inventory_2</span>
-                  Material: <strong class="text-on-surface font-semibold">${item.material}</strong>
-                </span>
-              </div>
-            </div>
+                </td>
+                <td class="py-3 px-4">
+                  <span class="font-semibold text-on-surface block text-xs">${item.actividad}</span>
+                  <span class="text-[10px] text-outline block">${item.material || 'Material estándar'}</span>
+                </td>
+                <td class="py-3 px-3 text-center font-bold text-on-surface">${v}</td>
+                <td class="py-3 px-3 text-center font-mono">${l.toFixed(2)}</td>
+                <td class="py-3 px-3 text-center font-mono">${an.toFixed(2)}</td>
+                <td class="py-3 px-3 text-center font-mono">${al.toFixed(2)}</td>
+                <td class="py-3 px-4 text-right font-bold text-secondary font-mono">${volAjustado.toFixed(2)} m³</td>
+                <td class="py-3 px-3 text-center">
+                  <span class="text-[11px] font-semibold text-outline">${desp}%</span>
+                </td>
+                <td class="py-3 px-4 text-right font-mono text-xs">${formatCOP(pu)}</td>
+                <td class="py-3 px-4 text-right font-bold text-primary font-mono text-xs">${formatCOP(costo)}</td>
+                <td class="py-3 px-3 text-center whitespace-nowrap">
+                  <button onclick="editApu('${item.id}')" class="w-7 h-7 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface inline-flex items-center justify-center transition-colors" title="Editar">
+                    <span class="material-symbols-outlined text-[15px]">edit</span>
+                  </button>
+                  <button onclick="deleteApu('${item.id}')" class="w-7 h-7 rounded-full hover:bg-error-container text-outline hover:text-error inline-flex items-center justify-center transition-colors" title="Eliminar">
+                    <span class="material-symbols-outlined text-[15px]">delete</span>
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
 
-            <div class="flex items-center gap-2 self-end sm:self-auto">
-              <button onclick="editApu('${item.id}')" class="w-8 h-8 rounded-full bg-surface-container-low hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors" title="Editar actividad">
-                <span class="material-symbols-outlined text-[16px]">edit</span>
-              </button>
-              <button onclick="deleteApu('${item.id}')" class="w-8 h-8 rounded-full bg-surface-container-low hover:bg-error-container text-outline hover:text-error flex items-center justify-center transition-colors" title="Eliminar actividad">
-                <span class="material-symbols-outlined text-[16px]">delete</span>
-              </button>
-            </div>
-          </div>
+          tableContainer.innerHTML = `
+            <table class="w-full text-left table-calc">
+              <thead class="bg-surface-container/60 text-on-surface-variant border-b border-surface-container-high">
+                <tr>
+                  <th class="py-2.5 px-4">Ítem / Código</th>
+                  <th class="py-2.5 px-4">Descripción / Material</th>
+                  <th class="py-2.5 px-3 text-center">N° Veces</th>
+                  <th class="py-2.5 px-3 text-center">Largo (m)</th>
+                  <th class="py-2.5 px-3 text-center">Ancho (m)</th>
+                  <th class="py-2.5 px-3 text-center">Alto (m)</th>
+                  <th class="py-2.5 px-4 text-right">Volumen (m³)</th>
+                  <th class="py-2.5 px-3 text-center">Desp.</th>
+                  <th class="py-2.5 px-4 text-right">Valor / m³</th>
+                  <th class="py-2.5 px-4 text-right">Costo Total</th>
+                  <th class="py-2.5 px-3 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+              <tfoot class="bg-surface-container-low/80 font-bold text-xs border-t border-surface-container-high">
+                <tr>
+                  <td colspan="6" class="py-3 px-4 text-right uppercase tracking-wider text-[11px] text-on-surface-variant">
+                    Total ${capTitle}:
+                  </td>
+                  <td class="py-3 px-4 text-right text-secondary font-mono">
+                    ${subtotalVolumen.toFixed(2)} m³
+                  </td>
+                  <td colspan="2"></td>
+                  <td class="py-3 px-4 text-right text-primary font-mono text-sm">
+                    ${formatCOP(subtotalCosto)}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          `;
+        }
 
-          <!-- Cuadro Analítico: Cantidades, Desperdicio y Costo Estimado -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface-container-low p-3.5 rounded-xl text-xs">
-            
-            <!-- Cantidad Base de Plano -->
-            <div class="flex flex-col">
-              <span class="text-[11px] text-on-surface-variant">Cantidad en Plano</span>
-              <span class="text-sm font-bold text-on-surface mt-0.5">
-                ${cantidad.toLocaleString('es-CO')} <span class="text-xs font-normal text-outline">${item.unidad}</span>
-              </span>
-              <span class="text-[10px] text-outline mt-0.5">PU: ${formatCOP(precio)}/${item.unidad}</span>
-            </div>
-
-            <!-- Porcentaje y Selector Rápido de Desperdicio -->
-            <div class="flex flex-col">
-              <span class="text-[11px] text-on-surface-variant">% Desperdicio</span>
-              <div class="flex items-center gap-1 mt-1">
-                <button onclick="quickChangeWaste('${item.id}', 5)" class="px-2 py-0.5 rounded-full text-[10px] font-bold ${desp === 5 ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container-high'}">5%</button>
-                <button onclick="quickChangeWaste('${item.id}', 8)" class="px-2 py-0.5 rounded-full text-[10px] font-bold ${desp === 8 ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container-high'}">8%</button>
-                <button onclick="quickChangeWaste('${item.id}', 10)" class="px-2 py-0.5 rounded-full text-[10px] font-bold ${desp === 10 ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container-high'}">10%</button>
-                <span class="text-[11px] font-bold text-secondary ml-1">${desp}%</span>
-              </div>
-              <span class="text-[10px] text-outline mt-0.5">+${formatCOP(valorDesperdicio)} en merma</span>
-            </div>
-
-            <!-- Cantidad Ajustada (PRD Función 2) -->
-            <div class="flex flex-col">
-              <span class="text-[11px] text-on-surface-variant">Cantidad Ajustada</span>
-              <span class="text-sm font-bold text-secondary mt-0.5">
-                ${cantidadAjustada.toFixed(2)} <span class="text-xs font-normal text-outline">${item.unidad}</span>
-              </span>
-              <span class="text-[10px] text-secondary font-medium mt-0.5">Total a comprar en obra</span>
-            </div>
-
-            <!-- Costo Total Estimado (PRD Función 2) -->
-            <div class="flex flex-col text-right sm:text-right">
-              <span class="text-[11px] text-on-surface-variant font-semibold">Costo Total Estimado</span>
-              <span class="text-base font-bold text-primary mt-0.5">
-                ${formatCOP(costoEstimado)}
-              </span>
-              <span class="text-[10px] text-outline mt-0.5">Base: ${formatCOP(costoBase)}</span>
-            </div>
-
-          </div>
-        `;
-
-        container.appendChild(card);
+        chapterCard.appendChild(tableContainer);
+        container.appendChild(chapterCard);
       });
     }
 
-    // Cambio rápido del % de desperdicio desde la tarjeta
-    function quickChangeWaste(id, newWaste) {
-      const item = appBudget.find(i => i.id === id);
-      if (item) {
-        item.desperdicio = newWaste;
-        localStorage.setItem('obracontrol_budget', JSON.stringify(appBudget));
-        renderBudgetMetrics();
-        renderBudgetList();
-      }
+    // Poblar desplegable de capítulos en el modal
+    function populateChapterDropdown() {
+      const select = document.getElementById('apu-capitulo');
+      if (!select) return;
+      select.innerHTML = "";
+      appChapters.forEach(cap => {
+        const opt = document.createElement('option');
+        opt.value = cap;
+        opt.textContent = cap;
+        select.appendChild(opt);
+      });
     }
 
-    // Modal APU: Abrir para Crear o Editar
-    function openApuModal(apuId = null) {
+    // Modal para agregar o editar ítem
+    function openApuModal(preselectedChapter = null, apuId = null) {
       editingApuId = apuId;
       const modal = document.getElementById('modal-apu');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
 
+      populateChapterDropdown();
+
       if (apuId) {
         const item = appBudget.find(i => i.id === apuId);
-        document.getElementById('modal-apu-title').textContent = "Editar Actividad / Partida";
-        document.getElementById('apu-actividad').value = item.actividad;
+        document.getElementById('modal-apu-title').textContent = "Editar Medición de Obra";
         document.getElementById('apu-capitulo').value = item.capitulo;
-        document.getElementById('apu-material').value = item.material;
-        document.getElementById('apu-cantidad').value = item.cantidad;
-        document.getElementById('apu-unidad').value = item.unidad;
-        document.getElementById('apu-precio').value = item.precioUnitario;
-        document.getElementById('apu-desperdicio').value = item.desperdicio;
+        document.getElementById('apu-actividad').value = item.actividad;
+        document.getElementById('apu-elemento').value = item.elemento || "";
+        document.getElementById('apu-material').value = item.material || "";
+        document.getElementById('apu-veces').value = item.veces || 1;
+        document.getElementById('apu-largo').value = item.largo || "";
+        document.getElementById('apu-ancho').value = item.ancho || "";
+        document.getElementById('apu-alto').value = item.alto || "";
+        document.getElementById('apu-precio').value = item.precioUnitario || "";
+        document.getElementById('apu-desperdicio').value = item.desperdicio !== undefined ? item.desperdicio : 5;
       } else {
-        document.getElementById('modal-apu-title').textContent = "Nueva Actividad / Partida de Obra";
-        document.getElementById('apu-actividad').value = "";
-        document.getElementById('apu-capitulo').value = activeBudgetChapterFilter !== "todos" ? activeBudgetChapterFilter : "Mampostería y Muros";
-        document.getElementById('apu-material').value = "";
-        document.getElementById('apu-cantidad').value = "";
-        document.getElementById('apu-unidad').value = "m²";
-        document.getElementById('apu-precio').value = "";
+        document.getElementById('modal-apu-title').textContent = "Nuevo Ítem / Medición de Obra";
+        if (preselectedChapter && appChapters.includes(preselectedChapter)) {
+          document.getElementById('apu-capitulo').value = preselectedChapter;
+        } else if (activeBudgetChapterFilter !== "todos") {
+          document.getElementById('apu-capitulo').value = activeBudgetChapterFilter;
+        }
+        document.getElementById('apu-actividad').value = "Zapatas en Concreto 3000 PSI";
+        document.getElementById('apu-elemento').value = "Z-" + (appBudget.length + 1);
+        document.getElementById('apu-material').value = "Concreto 3000 PSI + Acero de refuerzo";
+        document.getElementById('apu-veces').value = 1;
+        document.getElementById('apu-largo').value = "1.20";
+        document.getElementById('apu-ancho').value = "1.20";
+        document.getElementById('apu-alto').value = "0.40";
+        document.getElementById('apu-precio').value = "650000";
         document.getElementById('apu-desperdicio').value = "5";
       }
 
@@ -1466,70 +1444,78 @@
     }
 
     function editApu(id) {
-      openApuModal(id);
+      openApuModal(null, id);
     }
 
     function deleteApu(id) {
       const item = appBudget.find(i => i.id === id);
       if (!item) return;
 
-      if (confirm(`¿Deseas eliminar la actividad "${item.actividad}" del presupuesto?`)) {
+      if (confirm(`¿Deseas eliminar el ítem "${item.elemento} - ${item.actividad}"?`)) {
         appBudget = appBudget.filter(i => i.id !== id);
-        localStorage.setItem('obracontrol_budget', JSON.stringify(appBudget));
+        localStorage.setItem('obracontrol_budget_calc', JSON.stringify(appBudget));
         renderBudgetView();
       }
     }
 
     // Cálculo en vivo dentro del formulario modal
     function calculateModalApuPreview() {
-      const cant = parseFloat(document.getElementById('apu-cantidad').value) || 0;
+      const veces = parseFloat(document.getElementById('apu-veces').value) || 1;
+      const largo = parseFloat(document.getElementById('apu-largo').value) || 0;
+      const ancho = parseFloat(document.getElementById('apu-ancho').value) || 0;
+      const alto = parseFloat(document.getElementById('apu-alto').value) || 0;
       const pu = parseFloat(document.getElementById('apu-precio').value) || 0;
       const desp = parseFloat(document.getElementById('apu-desperdicio').value) || 0;
-      const unidad = document.getElementById('apu-unidad').value || "un";
 
-      const cantidadAjustada = cant * (1 + (desp / 100));
-      const costoEstimado = cantidadAjustada * pu;
-      const costoBase = cant * pu;
+      const volBase = veces * largo * ancho * alto;
+      const volAjustado = volBase * (1 + (desp / 100));
+      const costo = volAjustado * pu;
 
-      document.getElementById('preview-cantidad-ajustada').textContent = `${cantidadAjustada.toFixed(2)} ${unidad}`;
-      document.getElementById('preview-costo-base').textContent = formatCOP(costoBase);
-      document.getElementById('preview-costo-estimado').textContent = formatCOP(costoEstimado);
+      document.getElementById('preview-formula').textContent = `${veces} × ${largo.toFixed(2)}m × ${ancho.toFixed(2)}m × ${alto.toFixed(2)}m = ${volBase.toFixed(3)} m³`;
+      document.getElementById('preview-volumen-ajustado').textContent = `${volAjustado.toFixed(3)} m³ (con ${desp}% desp.)`;
+      document.getElementById('preview-costo-total').textContent = `${formatCOP(costo)} COP`;
     }
 
-    // Guardar partida en el presupuesto
+    // Guardar ítem en la memoria de cálculo
     function handleSaveApu(event) {
       event.preventDefault();
 
-      const actividad = document.getElementById('apu-actividad').value.trim();
       const capitulo = document.getElementById('apu-capitulo').value;
+      const actividad = document.getElementById('apu-actividad').value.trim();
+      const elemento = document.getElementById('apu-elemento').value.trim() || "Ítem";
       const material = document.getElementById('apu-material').value.trim();
-      const cantidad = parseFloat(document.getElementById('apu-cantidad').value) || 0;
-      const unidad = document.getElementById('apu-unidad').value;
+      const veces = parseFloat(document.getElementById('apu-veces').value) || 1;
+      const largo = parseFloat(document.getElementById('apu-largo').value) || 0;
+      const ancho = parseFloat(document.getElementById('apu-ancho').value) || 0;
+      const alto = parseFloat(document.getElementById('apu-alto').value) || 0;
       const precioUnitario = parseFloat(document.getElementById('apu-precio').value) || 0;
       const desperdicio = parseFloat(document.getElementById('apu-desperdicio').value) || 0;
 
       if (editingApuId) {
-        // Actualizar existente
         const item = appBudget.find(i => i.id === editingApuId);
         if (item) {
-          item.actividad = actividad;
           item.capitulo = capitulo;
+          item.actividad = actividad;
+          item.elemento = elemento;
           item.material = material;
-          item.cantidad = cantidad;
-          item.unidad = unidad;
+          item.veces = veces;
+          item.largo = largo;
+          item.ancho = ancho;
+          item.alto = alto;
           item.precioUnitario = precioUnitario;
           item.desperdicio = desperdicio;
         }
       } else {
-        // Crear nueva partida
         const newItem = {
-          id: "apu-" + Date.now(),
-          codigo: (appBudget.length + 1 < 10 ? '0' : '') + (appBudget.length + 1),
-          actividad: actividad,
+          id: "item-" + Date.now(),
           capitulo: capitulo,
+          actividad: actividad,
+          elemento: elemento,
           material: material,
-          cantidad: cantidad,
-          unidad: unidad,
+          veces: veces,
+          largo: largo,
+          ancho: ancho,
+          alto: alto,
           precioUnitario: precioUnitario,
           desperdicio: desperdicio,
           icono: "layers"
@@ -1537,19 +1523,63 @@
         appBudget.push(newItem);
       }
 
-      localStorage.setItem('obracontrol_budget', JSON.stringify(appBudget));
+      localStorage.setItem('obracontrol_budget_calc', JSON.stringify(appBudget));
       closeModal('modal-apu');
       renderBudgetView();
-      alert(`¡Partida "${actividad}" guardada con éxito en el presupuesto!`);
+      alert(`¡Elemento "${elemento} - ${actividad}" guardado con éxito!`);
     }
 
-    // Exportar presupuesto a JSON
-    function exportBudgetToJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appBudget, null, 2));
-      const dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", dataStr);
-      dlAnchor.setAttribute("download", `Presupuesto_${appProject.nombre.replace(/\s+/g, '_')}.json`);
-      dlAnchor.click();
+    // Agregar un nuevo capítulo de obra
+    function promptNewChapter() {
+      const nombre = prompt("Ingresa el nombre del nuevo capítulo de obra (ej. 07. Carpintería y Vidrios):");
+      if (nombre && nombre.trim()) {
+        const clean = nombre.trim();
+        if (!appChapters.includes(clean)) {
+          appChapters.push(clean);
+          localStorage.setItem('obracontrol_chapters', JSON.stringify(appChapters));
+          renderBudgetView();
+        }
+      }
+    }
+
+    function promptNewChapterInModal() {
+      const nombre = prompt("Nombre del nuevo capítulo de obra:");
+      if (nombre && nombre.trim()) {
+        const clean = nombre.trim();
+        if (!appChapters.includes(clean)) {
+          appChapters.push(clean);
+          localStorage.setItem('obracontrol_chapters', JSON.stringify(appChapters));
+          populateChapterDropdown();
+          document.getElementById('apu-capitulo').value = clean;
+        }
+      }
+    }
+
+    // Exportar tabla a CSV (Excel compatible)
+    function exportBudgetToCSV() {
+      let csv = "Capítulo;Elemento;Actividad;Material;Veces;Largo (m);Ancho (m);Alto (m);Volumen Base (m³);Desperdicio (%);Volumen Final (m³);Valor Unitario ($ COP);Costo Total ($ COP)\n";
+
+      appBudget.forEach(i => {
+        const v = Number(i.veces) || 1;
+        const l = Number(i.largo) || 0;
+        const an = Number(i.ancho) || 0;
+        const al = Number(i.alto) || 0;
+        const desp = Number(i.desperdicio) || 0;
+        const pu = Number(i.precioUnitario) || 0;
+
+        const volBase = v * l * an * al;
+        const volAjustado = volBase * (1 + (desp / 100));
+        const costo = volAjustado * pu;
+
+        csv += `"${i.capitulo}";"${i.elemento}";"${i.actividad}";"${i.material}";${v};${l};${an};${al};${volBase.toFixed(3)};${desp}%;${volAjustado.toFixed(3)};${pu};${costo.toFixed(0)}\n`;
+      });
+
+      const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Memorias_Calculo_Presupuesto_${appProject.nombre.replace(/\s+/g, '_')}.csv`);
+      link.click();
     }
 
     // ==========================================
@@ -2078,10 +2108,12 @@
       if (confirm("¿Deseas restablecer los datos de ejemplo de Casa Valparaíso?")) {
         appProject = { ...DEFAULT_PROJECT };
         appSheets = [ ...DEFAULT_SHEETS ];
+        appChapters = [ ...DEFAULT_CHAPTERS ];
         appBudget = [ ...DEFAULT_BUDGET ];
         localStorage.removeItem('obracontrol_project');
         localStorage.removeItem('obracontrol_sheets');
-        localStorage.removeItem('obracontrol_budget');
+        localStorage.removeItem('obracontrol_chapters');
+        localStorage.removeItem('obracontrol_budget_calc');
         activeCategoryFilter = "todos";
         activeBudgetChapterFilter = "todos";
         renderProjectInfo();
@@ -2103,16 +2135,19 @@
         targetSec.classList.add('flex');
       }
 
-      // Actualizar etiqueta del encabezado y botón principal
       const actionContainer = document.getElementById('header-action-container');
       const featureLabel = document.getElementById('header-active-feature-label');
 
       if (tabName === 'presupuesto') {
-        featureLabel.textContent = '· Función 2: Elaboración de Presupuesto';
+        featureLabel.textContent = '· Función 2: Tabla de Cantidades y Memorias';
         actionContainer.innerHTML = `
           <button onclick="openApuModal()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-[0_8px_20px_-4px_rgba(22,51,40,0.3)] hover:opacity-95 transition-transform active:scale-95">
             <span class="material-symbols-outlined text-[16px]">add_circle</span>
-            + Agregar Partida
+            + Agregar Ítem (Z-1, V-1...)
+          </button>
+          <button onclick="promptNewChapter()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container-lowest shadow-[0_4px_16px_rgba(28,35,33,0.05)] text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-all">
+            <span class="material-symbols-outlined text-[16px] text-secondary">create_new_folder</span>
+            + Capítulo
           </button>
         `;
         renderBudgetView();
