@@ -181,7 +181,7 @@
           <span class="px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-semibold">
             ObraControl v1.0
           </span>
-          <span class="text-xs text-on-surface-variant">· Función 1: Ficha & Planos</span>
+          <span class="text-xs text-on-surface-variant">· Función 1: Ficha & Planos Clasificados</span>
         </div>
         <h1 class="text-2xl sm:text-3xl font-bold text-on-surface tracking-tight mt-1" id="header-project-name">
           Casa Valparaíso
@@ -197,11 +197,10 @@
           <span class="material-symbols-outlined text-[16px] text-secondary">edit</span>
           Editar Ficha
         </button>
-        <label class="cursor-pointer flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-[0_8px_20px_-4px_rgba(22,51,40,0.3)] hover:opacity-95 transition-transform active:scale-95">
+        <button onclick="openUploadModal()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-[0_8px_20px_-4px_rgba(22,51,40,0.3)] hover:opacity-95 transition-transform active:scale-95">
           <span class="material-symbols-outlined text-[16px]">cloud_upload</span>
           Subir Plano
-          <input type="file" id="file-input-plano" accept=".pdf,image/*" class="hidden" onchange="handleFileUpload(event)" />
-        </label>
+        </button>
       </div>
     </header>
 
@@ -214,8 +213,8 @@
       <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-secondary-container/40 rounded-xl border border-secondary-container">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
-          <span class="text-xs font-semibold text-on-secondary-container">Expediente Técnico y Planos de Referencia</span>
-          <span class="text-xs text-on-surface-variant hidden md:inline">· Consulta de planos con soporte para múltiples plantas arquitectónicas</span>
+          <span class="text-xs font-semibold text-on-secondary-container">Expediente Técnico Clasificado por Especialidades</span>
+          <span class="text-xs text-on-surface-variant hidden md:inline">· Arquitectura, Estructuras, Hidrosanitario, Eléctrico y Gas</span>
         </div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-medium text-on-surface" id="active-sheet-label">Lámina en visor: A-01 Arquitectónico</span>
@@ -297,27 +296,31 @@
             </div>
           </div>
 
-          <!-- TARJETA 2: Selector de Láminas y Planos Disponibles (con botón Eliminar) -->
+          <!-- TARJETA 2: Selector de Láminas y Clasificación por Áreas/Especialidades -->
           <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/40">
             <div class="flex items-center justify-between mb-3">
               <div>
                 <h3 class="text-sm font-bold text-on-surface">Láminas y Planos</h3>
-                <p class="text-[11px] text-on-surface-variant">Toca para proyectar o el icono para eliminar</p>
+                <p class="text-[11px] text-on-surface-variant">Filtra por especialidad para organizar tu obra</p>
               </div>
-              <span class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface text-xs flex items-center justify-center font-bold" id="sheets-count">2</span>
+              <span class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface text-xs flex items-center justify-center font-bold" id="sheets-count">5</span>
             </div>
 
-            <!-- Lista de Láminas -->
+            <!-- BOTONES DE CLASIFICACIÓN POR ÁREAS / ESPECIALIDADES -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-2 pt-1 mb-3 scrollbar-none" id="category-filter-bar">
+              <!-- Se generan dinámicamente con JS -->
+            </div>
+
+            <!-- Lista de Láminas de la categoría activa -->
             <div class="flex flex-col gap-2" id="sheet-list">
-              <!-- Se genera dinámicamente -->
+              <!-- Se genera dinámicamente con JS -->
             </div>
 
-            <!-- Botón para adjuntar plano -->
-            <label class="cursor-pointer mt-3 w-full py-2.5 px-3 rounded-lg border-2 border-dashed border-outline-variant/60 hover:border-primary text-center text-xs text-on-surface-variant hover:text-primary flex items-center justify-center gap-2 transition-all">
+            <!-- Botón para adjuntar plano a la categoría actual -->
+            <button onclick="openUploadModal()" class="mt-3 w-full py-2.5 px-3 rounded-lg border-2 border-dashed border-outline-variant/60 hover:border-primary text-center text-xs text-on-surface-variant hover:text-primary flex items-center justify-center gap-2 transition-all">
               <span class="material-symbols-outlined text-[18px]">add_circle</span>
-              <span>Adjuntar otro plano (PDF multipágina o Imagen)</span>
-              <input type="file" accept=".pdf,image/*" class="hidden" onchange="handleFileUpload(event)" />
-            </label>
+              <span id="btn-upload-label">Subir nuevo plano</span>
+            </button>
           </div>
 
         </div>
@@ -332,10 +335,15 @@
               <div class="flex items-center gap-2.5">
                 <span class="w-3 h-3 rounded-full bg-secondary"></span>
                 <div>
-                  <h3 class="text-sm sm:text-base font-bold text-on-surface" id="viewer-sheet-title">
-                    Lámina A-01: Planta Arquitectónica Nivel +0.00
-                  </h3>
-                  <p class="text-xs text-on-surface-variant" id="viewer-sheet-subtitle">
+                  <div class="flex items-center gap-2">
+                    <span id="viewer-sheet-category-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary-container text-on-secondary-container">
+                      Arquitectónico
+                    </span>
+                    <h3 class="text-sm sm:text-base font-bold text-on-surface" id="viewer-sheet-title">
+                      Lámina A-01: Planta Arquitectónica Nivel +0.00
+                    </h3>
+                  </div>
+                  <p class="text-xs text-on-surface-variant mt-0.5" id="viewer-sheet-subtitle">
                     Escala 1:50 · Cotas en metros · Orientación Norte +18°
                   </p>
                 </div>
@@ -386,7 +394,7 @@
               <!-- Indicador de carga -->
               <div id="viewer-loading" class="hidden absolute inset-0 bg-surface/70 backdrop-blur-sm z-30 flex-col items-center justify-center gap-2">
                 <span class="w-7 h-7 border-3 border-primary border-t-transparent rounded-full animate-spin"></span>
-                <span class="text-xs font-semibold text-primary">Cargando planta arquitectónica...</span>
+                <span class="text-xs font-semibold text-primary">Cargando plano arquitectónico...</span>
               </div>
 
               <!-- Contenedor del contenido (Vectorial SVG o Canvas PDF o Imagen) -->
@@ -404,7 +412,13 @@
                   <span class="w-2 h-2 rounded-full bg-secondary"></span> Carpintería & Deck
                 </div>
                 <div class="flex items-center gap-1.5 text-on-surface text-[11px]">
-                  <span class="w-2 h-2 rounded-full bg-error"></span> Instalaciones
+                  <span class="w-2 h-2 rounded-full bg-cyan-600"></span> Hidrosanitarios
+                </div>
+                <div class="flex items-center gap-1.5 text-on-surface text-[11px]">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span> Eléctricos
+                </div>
+                <div class="flex items-center gap-1.5 text-on-surface text-[11px]">
+                  <span class="w-2 h-2 rounded-full bg-orange-500"></span> Gas
                 </div>
               </div>
 
@@ -414,17 +428,17 @@
             <div class="mt-4 p-3.5 rounded-lg bg-surface-container-low flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0">
-                  <span class="material-symbols-outlined text-[16px]">edit_note</span>
+                  <span class="material-symbols-outlined text-[16px]">folder_special</span>
                 </div>
                 <div>
-                  <span class="font-bold text-on-surface">Referencia de Supervisión Técnica:</span>
+                  <span class="font-bold text-on-surface">Expediente Ordenado por Especialidades:</span>
                   <p class="text-on-surface-variant mt-0.5">
-                    "Usa los botones de Anterior / Siguiente para navegar entre los diferentes pisos o láminas de tu plano PDF."
+                    "Clasifica tus planos en Arquitectónicos, Estructurales, Hidrosanitarios, Eléctricos o de Gas para acceder a ellos al instante en obra."
                   </p>
                 </div>
               </div>
               <span class="px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface font-semibold text-[10px] shrink-0">
-                Soporte PDF Multipágina Activo
+                Clasificación por Áreas Activa
               </span>
             </div>
 
@@ -507,7 +521,87 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- MODAL: CREAR / EDITAR PROYECTO (FUNCIÓN 1) -->
+  <!-- MODAL: SUBIR PLANO CLASIFICADO POR ÁREA -->
+  <!-- ========================================== -->
+  <div id="modal-subir-plano" class="fixed inset-0 z-50 bg-on-surface/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-surface-container-lowest rounded-2xl w-full max-w-md p-6 shadow-2xl border border-surface-container-high/60">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-surface-container-high/60">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">cloud_upload</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-on-surface">Subir Plano al Expediente</h3>
+            <p class="text-xs text-on-surface-variant">Clasifica el plano en el área correspondiente</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-subir-plano')" class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <form id="form-subir-plano" onsubmit="handleUploadModalSubmit(event)" class="mt-4 flex flex-col gap-4 text-xs">
+        
+        <!-- Especialidad / Área -->
+        <div>
+          <label class="font-bold text-on-surface mb-1 block">Especialidad / Área de Obra *</label>
+          <select id="upload-categoria" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium">
+            <option value="arquitectonico">🏛️ Arquitectónicos (Plantas, cortes, fachadas)</option>
+            <option value="estructural">🏗️ Estructurales (Cimentación, losas, despiece)</option>
+            <option value="hidrosanitario">💧 Hidráulicos y Sanitarios (Agua potable, residuales)</option>
+            <option value="electrico">⚡ Eléctricos (Iluminación, tomas, cuadros)</option>
+            <option value="gas">🔥 Red de Gas (Isométrico y puntos)</option>
+          </select>
+        </div>
+
+        <!-- Nombre o Código del Plano -->
+        <div>
+          <label class="font-bold text-on-surface mb-1 block">Nombre o Código de la Lámina</label>
+          <input type="text" id="upload-nombre" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface" placeholder="Ej. A-02 Fachadas y Cortes (Opcional, tomará el nombre del archivo)" />
+        </div>
+
+        <!-- Descripción / Subtítulo -->
+        <div>
+          <label class="font-bold text-on-surface mb-1 block">Descripción breve</label>
+          <input type="text" id="upload-subtitulo" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface" placeholder="Ej. Detalle de vigas y refuerzo longitudinal" />
+        </div>
+
+        <!-- Archivo (PDF o Imagen) -->
+        <div>
+          <label class="font-bold text-on-surface mb-1 block">Seleccionar archivo (PDF multipágina o Imagen) *</label>
+          <div class="mt-1 flex justify-center px-4 pt-4 pb-4 border-2 border-dashed border-outline-variant/60 rounded-xl hover:border-primary transition-colors bg-surface-container-low text-center">
+            <div class="space-y-1 text-center">
+              <span class="material-symbols-outlined text-[36px] text-primary mx-auto block">picture_as_pdf</span>
+              <div class="flex text-xs text-on-surface-variant justify-center">
+                <label for="upload-file-input" class="relative cursor-pointer rounded-md font-bold text-primary hover:underline">
+                  <span>Haz clic aquí para buscar el archivo</span>
+                  <input id="upload-file-input" name="upload-file-input" type="file" accept=".pdf,image/*" required class="sr-only" onchange="previewSelectedFileName(event)" />
+                </label>
+              </div>
+              <p class="text-[11px] text-outline" id="selected-file-label">Formatos admitidos: PDF (una o varias páginas), JPG, PNG</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="pt-3 border-t border-surface-container-high/60 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-subir-plano')" class="px-4 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-semibold">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-full bg-primary text-on-primary font-semibold shadow-md hover:opacity-95 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">check</span>
+            Cargar al Proyecto
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: CREAR / EDITAR PROYECTO -->
   <!-- ========================================== -->
   <div id="modal-proyecto" class="fixed inset-0 z-50 bg-on-surface/40 backdrop-blur-sm hidden items-center justify-center p-4">
     <div class="bg-surface-container-lowest rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-surface-container-high/60 max-h-[90vh] overflow-y-auto">
@@ -596,10 +690,20 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- JAVASCRIPT: LÓGICA DE LA FUNCIÓN 1 -->
+  <!-- JAVASCRIPT: LÓGICA DE CLASIFICACIÓN Y PLANOS -->
   <!-- ========================================== -->
   <script>
-    // Datos por defecto (Casa Valparaíso)
+    // Especialidades / Categorías de Planos
+    const CATEGORIAS = [
+      { id: "todos", nombre: "Todos", emoji: "📁", icono: "apps", badgeClass: "bg-surface-container-high text-on-surface" },
+      { id: "arquitectonico", nombre: "Arquitectónicos", emoji: "🏛️", icono: "architecture", badgeClass: "bg-primary-container text-on-primary-container" },
+      { id: "estructural", nombre: "Estructurales", emoji: "🏗️", icono: "foundation", badgeClass: "bg-secondary-container text-on-secondary-container" },
+      { id: "hidrosanitario", nombre: "Hidrosanitarios", emoji: "💧", icono: "water_drop", badgeClass: "bg-cyan-100 text-cyan-800" },
+      { id: "electrico", nombre: "Eléctricos", emoji: "⚡", icono: "bolt", badgeClass: "bg-amber-100 text-amber-800" },
+      { id: "gas", nombre: "Gas", emoji: "🔥", icono: "local_fire_department", badgeClass: "bg-orange-100 text-orange-800" }
+    ];
+
+    // Datos por defecto del proyecto (Casa Valparaíso)
     const DEFAULT_PROJECT = {
       nombre: "Casa Valparaíso",
       ubicacion: "Rionegro, Antioquia",
@@ -688,10 +792,11 @@
       </div>
     `;
 
-    // Láminas precargadas
+    // Láminas precargadas con las 5 especialidades
     const DEFAULT_SHEETS = [
       {
         id: "sheet-A01",
+        categoria: "arquitectonico",
         codigo: "A-01",
         nombre: "A-01 Arquitectónico",
         subtitulo: "Planta Nivel 1 + Cuadro de Áreas",
@@ -702,6 +807,7 @@
       },
       {
         id: "sheet-E01",
+        categoria: "estructural",
         codigo: "E-01",
         nombre: "E-01 Cimentación",
         subtitulo: "Vigas de amarre, zapatas y pedestales",
@@ -709,17 +815,50 @@
         icono: "foundation",
         tamano: "Vectorial · 1:50",
         activo: false
+      },
+      {
+        id: "sheet-H01",
+        categoria: "hidrosanitario",
+        codigo: "H-01",
+        nombre: "H-01 Hidrosanitario",
+        subtitulo: "Red agua potable y desagües",
+        tipo: "vector",
+        icono: "water_drop",
+        tamano: "Vectorial · 1:50",
+        activo: false
+      },
+      {
+        id: "sheet-EL01",
+        categoria: "electrico",
+        codigo: "EL-01",
+        nombre: "EL-01 Red Eléctrica",
+        subtitulo: "Circuitos, iluminación y tomas",
+        tipo: "vector",
+        icono: "bolt",
+        tamano: "Vectorial · 1:50",
+        activo: false
+      },
+      {
+        id: "sheet-G01",
+        categoria: "gas",
+        codigo: "G-01",
+        nombre: "G-01 Red de Gas",
+        subtitulo: "Tubería pe-al-pe e isométrico",
+        tipo: "vector",
+        icono: "local_fire_department",
+        tamano: "Vectorial · 1:50",
+        activo: false
       }
     ];
 
     // ==========================================
-    // INDEXEDDB PARA ALMACENAR PLANOS PESADOS (PDF/IMAGEN)
+    // INDEXEDDB PARA ALMACENAR PLANOS PESADOS
     // ==========================================
     const DB_NAME = "ObraControlDB";
     const STORE_NAME = "planos_files";
 
     function openDB() {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         if (!window.indexedDB) {
           resolve(null);
           return;
@@ -782,17 +921,19 @@
     // Estado global de la aplicación
     let appProject = JSON.parse(localStorage.getItem('obracontrol_project')) || DEFAULT_PROJECT;
     let appSheets = JSON.parse(localStorage.getItem('obracontrol_sheets')) || DEFAULT_SHEETS;
+    let activeCategoryFilter = "todos"; // Categoría activa
     
     // Variables para el Visor PDF multipágina
     let currentZoom = 1;
     let currentPdfDoc = null;
     let currentPdfPageNum = 1;
     let totalPdfPages = 1;
-    let inMemoryFiles = {}; // Caché en memoria
+    let inMemoryFiles = {};
 
     // Inicializar UI al cargar
     document.addEventListener("DOMContentLoaded", () => {
       renderProjectInfo();
+      renderCategoryFilters();
       renderSheetsList();
       renderViewer();
     });
@@ -820,23 +961,79 @@
       document.getElementById('btn-whatsapp').href = `https://wa.me/${cleanPhone}`;
     }
 
-    // Renderizar lista de láminas (con botón de eliminar)
+    // Renderizar botones de filtro por especialidad
+    function renderCategoryFilters() {
+      const container = document.getElementById('category-filter-bar');
+      container.innerHTML = "";
+
+      CATEGORIAS.forEach(cat => {
+        const count = (cat.id === "todos") 
+          ? appSheets.length 
+          : appSheets.filter(s => s.categoria === cat.id).length;
+
+        const isSelected = (activeCategoryFilter === cat.id);
+        const btn = document.createElement('button');
+        btn.className = `flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all ${
+          isSelected 
+            ? 'bg-primary text-on-primary shadow-sm scale-100' 
+            : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+        }`;
+        btn.onclick = () => setCategoryFilter(cat.id);
+
+        btn.innerHTML = `
+          <span>${cat.emoji}</span>
+          <span>${cat.nombre}</span>
+          <span class="ml-0.5 text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-surface-container-high text-on-surface-variant'}">${count}</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function setCategoryFilter(catId) {
+      activeCategoryFilter = catId;
+      renderCategoryFilters();
+      renderSheetsList();
+
+      // Actualizar label del botón de subida
+      const currentCatObj = CATEGORIAS.find(c => c.id === catId);
+      const label = document.getElementById('btn-upload-label');
+      if (catId === "todos") {
+        label.textContent = "Subir nuevo plano";
+      } else {
+        label.textContent = `Subir plano ${currentCatObj.nombre}`;
+      }
+    }
+
+    // Renderizar lista de láminas filtradas
     function renderSheetsList() {
       const container = document.getElementById('sheet-list');
       container.innerHTML = "";
+
+      const filteredSheets = (activeCategoryFilter === "todos")
+        ? appSheets
+        : appSheets.filter(s => s.categoria === activeCategoryFilter);
+
       document.getElementById('sheets-count').textContent = appSheets.length;
 
-      if (appSheets.length === 0) {
+      if (filteredSheets.length === 0) {
+        const catObj = CATEGORIAS.find(c => c.id === activeCategoryFilter) || { nombre: "esta categoría" };
         container.innerHTML = `
-          <div class="text-center py-6 text-xs text-on-surface-variant">
-            No hay láminas disponibles. Adjunta un plano en PDF o Imagen.
+          <div class="text-center py-6 px-3 bg-surface-container-low rounded-xl border border-dashed border-outline-variant/60">
+            <span class="material-symbols-outlined text-[32px] text-outline mb-1 block">folder_open</span>
+            <p class="text-xs font-semibold text-on-surface">No hay planos en ${catObj.nombre}</p>
+            <p class="text-[11px] text-on-surface-variant mt-0.5">Sube los planos correspondientes a esta especialidad</p>
+            <button onclick="openUploadModal('${activeCategoryFilter}')" class="mt-3 px-3.5 py-1.5 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-sm inline-flex items-center gap-1 hover:opacity-95">
+              <span class="material-symbols-outlined text-[14px]">add</span>
+              Subir a ${catObj.nombre}
+            </button>
           </div>
         `;
         return;
       }
 
-      appSheets.forEach((sheet) => {
+      filteredSheets.forEach((sheet) => {
         const isActive = sheet.activo;
+        const catObj = CATEGORIAS.find(c => c.id === sheet.categoria) || CATEGORIAS[1];
         const item = document.createElement('div');
         item.className = `group cursor-pointer p-3 rounded-lg transition-all flex items-center justify-between ${
           isActive 
@@ -848,11 +1045,14 @@
         item.innerHTML = `
           <div class="flex items-center gap-2.5 overflow-hidden flex-1 mr-2">
             <div class="w-8 h-8 rounded-full ${isActive ? 'bg-on-primary/10 text-on-primary' : 'bg-surface-container-highest text-on-surface-variant'} flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-[16px]">${sheet.icono || 'file_present'}</span>
+              <span class="material-symbols-outlined text-[16px]">${sheet.icono || catObj.icono || 'file_present'}</span>
             </div>
             <div class="flex flex-col overflow-hidden">
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="font-bold text-xs truncate">${sheet.nombre}</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[9px] font-semibold ${isActive ? 'bg-white/20 text-white' : catObj.badgeClass}">
+                  ${catObj.emoji} ${catObj.nombre}
+                </span>
                 ${isActive ? '<span class="px-1.5 py-0.2 rounded-full bg-secondary-fixed text-on-secondary-fixed text-[9px] font-bold">En Visor</span>' : ''}
               </div>
               <span class="text-[11px] ${isActive ? 'text-primary-fixed-dim' : 'text-on-surface-variant'} truncate">${sheet.subtitulo}</span>
@@ -898,20 +1098,18 @@
       const confirmar = confirm(`¿Deseas eliminar el plano "${sheet.nombre}"?`);
       if (!confirmar) return;
 
-      // Eliminar de memoria y BD
       delete inMemoryFiles[sheetId];
       await deleteFileFromDB(sheetId);
 
-      // Eliminar de lista
       const wasActive = sheet.activo;
       appSheets = appSheets.filter(s => s.id !== sheetId);
 
-      // Si la eliminada estaba activa, activar otra
       if (wasActive && appSheets.length > 0) {
         appSheets[0].activo = true;
       }
 
       localStorage.setItem('obracontrol_sheets', JSON.stringify(appSheets));
+      renderCategoryFilters();
       renderSheetsList();
       renderViewer();
     }
@@ -924,6 +1122,7 @@
       const stage = document.getElementById('plan-stage');
       const paginationBar = document.getElementById('pdf-pagination-bar');
       const loader = document.getElementById('viewer-loading');
+      const catBadge = document.getElementById('viewer-sheet-category-badge');
 
       resetZoom();
 
@@ -936,14 +1135,19 @@
         `;
         paginationBar.classList.add('hidden');
         paginationBar.classList.remove('flex');
+        catBadge.textContent = "Sin plano";
         return;
       }
 
-      document.getElementById('active-sheet-label').textContent = `Lámina en visor: ${activeSheet.nombre}`;
+      const catObj = CATEGORIAS.find(c => c.id === activeSheet.categoria) || CATEGORIAS[1];
+      catBadge.textContent = `${catObj.emoji} ${catObj.nombre}`;
+      catBadge.className = `px-2 py-0.5 rounded-full text-[10px] font-bold ${catObj.badgeClass}`;
+
+      document.getElementById('active-sheet-label').textContent = `Lámina en visor: ${activeSheet.nombre} (${catObj.nombre})`;
       document.getElementById('viewer-sheet-title').textContent = activeSheet.nombre;
       document.getElementById('viewer-sheet-subtitle').textContent = activeSheet.subtitulo || "Plano de consulta en obra";
 
-      // CASO 1: Plano Vectorial SVG de Muestra
+      // CASO 1: Vectorial de muestra
       if (activeSheet.tipo === 'vector') {
         paginationBar.classList.add('hidden');
         paginationBar.classList.remove('flex');
@@ -951,7 +1155,6 @@
         return;
       }
 
-      // Obtener archivo de memoria o IndexedDB
       loader.classList.remove('hidden');
       loader.classList.add('flex');
 
@@ -973,28 +1176,23 @@
         return;
       }
 
-      // CASO 2: Plano PDF Multipágina (con PDF.js)
+      // CASO 2: PDF Multipágina
       if (activeSheet.tipo === 'pdf') {
         try {
-          if (!window.pdfjsLib) {
-            throw new Error("Librería PDF.js no disponible");
-          }
+          if (!window.pdfjsLib) throw new Error("PDF.js no disponible");
 
-          // Cargar documento PDF
           const loadingTask = pdfjsLib.getDocument(fileData);
           currentPdfDoc = await loadingTask.promise;
           totalPdfPages = currentPdfDoc.numPages;
           currentPdfPageNum = 1;
 
-          // Mostrar barra de paginación multipágina
           paginationBar.classList.remove('hidden');
           paginationBar.classList.add('flex');
           document.getElementById('pdf-total-pages').textContent = totalPdfPages;
 
           await renderCurrentPdfPage();
         } catch (err) {
-          console.error("Error al renderizar PDF con PDF.js:", err);
-          // Fallback a iframe
+          console.error("Error al renderizar PDF:", err);
           paginationBar.classList.add('hidden');
           paginationBar.classList.remove('flex');
           stage.innerHTML = `
@@ -1009,7 +1207,7 @@
         return;
       }
 
-      // CASO 3: Imagen (PNG, JPG, WebP)
+      // CASO 3: Imagen
       if (activeSheet.tipo === 'image') {
         paginationBar.classList.add('hidden');
         paginationBar.classList.remove('flex');
@@ -1024,7 +1222,6 @@
       }
     }
 
-    // Renderizar página actual del PDF en un <canvas>
     async function renderCurrentPdfPage() {
       if (!currentPdfDoc) return;
       const loader = document.getElementById('viewer-loading');
@@ -1035,18 +1232,15 @@
         const page = await currentPdfDoc.getPage(currentPdfPageNum);
         document.getElementById('pdf-current-page').textContent = currentPdfPageNum;
         
-        // Estado botones de paginación
         document.getElementById('btn-pdf-prev').disabled = (currentPdfPageNum <= 1);
         document.getElementById('btn-pdf-next').disabled = (currentPdfPageNum >= totalPdfPages);
 
-        // Subtítulo con el número de página/planta
         const activeSheet = appSheets.find(s => s.activo);
         if (activeSheet) {
           document.getElementById('viewer-sheet-subtitle').textContent = 
             `Planta / Lámina ${currentPdfPageNum} de ${totalPdfPages} · ${activeSheet.nombre}`;
         }
 
-        // Calcular escala adecuada para la pantalla
         const isMobile = window.innerWidth < 768;
         const scaleFactor = isMobile ? 1.0 : 1.5;
         const viewport = page.getViewport({ scale: scaleFactor });
@@ -1076,7 +1270,6 @@
       }
     }
 
-    // Navegar entre páginas del PDF (Planta siguiente / anterior)
     function prevPdfPage() {
       if (currentPdfDoc && currentPdfPageNum > 1) {
         currentPdfPageNum--;
@@ -1091,16 +1284,63 @@
       }
     }
 
-    // Manejar subida de archivos (PDF o Imagen)
-    function handleFileUpload(event) {
+    // ==========================================
+    // MODAL DE SUBIDA DE PLANOS POR ESPECIALIDAD
+    // ==========================================
+    function openUploadModal(preselectedCategory) {
+      const modal = document.getElementById('modal-subir-plano');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Preseleccionar categoría activa si no es 'todos'
+        const catSelect = document.getElementById('upload-categoria');
+        const targetCat = (preselectedCategory && preselectedCategory !== 'todos')
+          ? preselectedCategory
+          : (activeCategoryFilter !== 'todos' ? activeCategoryFilter : 'arquitectonico');
+        catSelect.value = targetCat;
+
+        // Reset inputs
+        document.getElementById('upload-nombre').value = "";
+        document.getElementById('upload-subtitulo').value = "";
+        document.getElementById('upload-file-input').value = "";
+        document.getElementById('selected-file-label').textContent = "Formatos admitidos: PDF (una o varias plantas), JPG, PNG";
+      }
+    }
+
+    function previewSelectedFileName(event) {
       const file = event.target.files[0];
-      if (!file) return;
+      const label = document.getElementById('selected-file-label');
+      if (file) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+        label.innerHTML = `<strong class="text-primary">${file.name}</strong> (${sizeMb} MB) listo para cargar`;
+        
+        // Autocompletar nombre si está vacío
+        const nameInput = document.getElementById('upload-nombre');
+        if (!nameInput.value.trim()) {
+          nameInput.value = file.name.replace(/\.[^/.]+$/, "");
+        }
+      }
+    }
+
+    function handleUploadModalSubmit(event) {
+      event.preventDefault();
+      const fileInput = document.getElementById('upload-file-input');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Por favor selecciona un archivo PDF o imagen.");
+        return;
+      }
+
+      const categoria = document.getElementById('upload-categoria').value;
+      const customNombre = document.getElementById('upload-nombre').value.trim();
+      const customSubtitulo = document.getElementById('upload-subtitulo').value.trim();
 
       const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
       const isImage = file.type.startsWith("image/");
 
       if (!isPdf && !isImage) {
-        alert("Por favor selecciona un archivo PDF o una imagen (PNG, JPG, WebP).");
+        alert("Formato no válido. Debe ser PDF o Imagen (PNG, JPG, WebP).");
         return;
       }
 
@@ -1108,31 +1348,32 @@
       const loader = document.getElementById('viewer-loading');
       loader.classList.remove('hidden');
       loader.classList.add('flex');
+      closeModal('modal-subir-plano');
 
       reader.onload = async function(e) {
         const dataUrl = e.target.result;
         const fileSizeMb = (file.size / (1024 * 1024)).toFixed(1);
         const newSheetId = "sheet-" + Date.now();
 
-        // Guardar en memoria y en IndexedDB
-        inMemoryFiles[newSheetId] = dataUrl;
         await saveFileToDB(newSheetId, dataUrl);
+        inMemoryFiles[newSheetId] = dataUrl;
 
-        // Desactivar las demás y activar la nueva
         appSheets.forEach(s => s.activo = false);
+
+        const catObj = CATEGORIAS.find(c => c.id === categoria) || CATEGORIAS[1];
 
         const newSheet = {
           id: newSheetId,
+          categoria: categoria,
           codigo: isPdf ? "PDF" : "IMG",
-          nombre: file.name.length > 24 ? file.name.slice(0, 21) + "..." : file.name,
-          subtitulo: `Plano adjunto · ${isPdf ? 'Documento PDF' : 'Imagen'}`,
+          nombre: customNombre || file.name,
+          subtitulo: customSubtitulo || `Plano ${catObj.nombre} · ${isPdf ? 'Documento PDF' : 'Imagen'}`,
           tipo: isPdf ? 'pdf' : 'image',
-          icono: isPdf ? 'picture_as_pdf' : 'image',
+          icono: catObj.icono,
           tamano: `${fileSizeMb} MB`,
           activo: true
         };
 
-        // Si el archivo es pequeño, guardar copia en localStorage como respaldo
         if (file.size < 2 * 1024 * 1024) {
           newSheet.dataUrl = dataUrl;
         }
@@ -1140,12 +1381,16 @@
         appSheets.unshift(newSheet);
         localStorage.setItem('obracontrol_sheets', JSON.stringify(appSheets));
 
+        // Cambiar filtro a la categoría subida para que la arquitecta vea su plano inmediatamente
+        activeCategoryFilter = categoria;
+
         loader.classList.add('hidden');
         loader.classList.remove('flex');
 
+        renderCategoryFilters();
         renderSheetsList();
         renderViewer();
-        alert(`¡Plano "${file.name}" cargado exitosamente!`);
+        alert(`¡Plano "${newSheet.nombre}" agregado con éxito a ${catObj.nombre}!`);
       };
 
       reader.readAsDataURL(file);
@@ -1236,7 +1481,9 @@
         appSheets = [ ...DEFAULT_SHEETS ];
         localStorage.removeItem('obracontrol_project');
         localStorage.removeItem('obracontrol_sheets');
+        activeCategoryFilter = "todos";
         renderProjectInfo();
+        renderCategoryFilters();
         renderSheetsList();
         renderViewer();
         closeModal('modal-proyecto');
