@@ -545,51 +545,487 @@
     <!-- =================================================== -->
     
     <section id="view-gastos" class="view-section hidden flex-col gap-6">
-      <div class="bg-surface-container-lowest rounded-xl p-8 text-center max-w-xl mx-auto shadow-sm border border-surface-container-high/60 my-12">
-        <div class="w-16 h-16 rounded-full bg-secondary-container text-primary flex items-center justify-center mx-auto mb-4">
-          <span class="material-symbols-outlined text-[32px]">receipt_long</span>
+
+      <!-- Barra de Estado / Aviso -->
+      <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-secondary-container/40 rounded-xl border border-secondary-container">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
+          <span class="text-xs font-semibold text-on-secondary-container">Bitácora Oficial de Gastos y Compras de Obra</span>
+          <span class="text-xs text-on-surface-variant hidden md:inline">· Registro de compras de materiales, pagos de jornales, fletes y alquileres</span>
         </div>
-        <h2 class="text-xl font-bold text-on-surface">Función 3: Registrar Gastos y Compras</h2>
-        <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">
-          Aquí podrás ingresar cada compra de material o pago de mano de obra al terminar la jornada (fecha, concepto, material, cantidad y valor pagado).
-        </p>
-        <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-low text-xs font-semibold text-secondary">
-          <span class="material-symbols-outlined text-[16px]">schedule</span>
-          Programada para el Paso 4
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-primary" id="expenses-active-summary-label">Cargando gastos...</span>
         </div>
       </div>
+
+      <!-- Métricas Bento de Gastos (4 Tarjetas) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Tarjeta 1: Total Gastos Acumulados -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Total Gastos de Obra</span>
+            <div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">payments</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold text-primary font-mono" id="stat-gastos-total">$0</h3>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px] text-on-surface-variant">
+              <span class="font-bold text-secondary" id="stat-gastos-conteo">0</span> transacciones registradas
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 2: Materiales -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Materiales Comprados</span>
+            <div class="w-8 h-8 rounded-full bg-secondary-container text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">token</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold text-on-surface font-mono" id="stat-gastos-materiales">$0</h3>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px]">
+              <span class="px-1.5 py-0.2 rounded-full bg-secondary-container text-primary font-bold" id="stat-pct-materiales">0%</span>
+              <span class="text-on-surface-variant">del gasto total</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 3: Mano de Obra -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Mano de Obra y Jornales</span>
+            <div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">engineering</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold text-on-surface font-mono" id="stat-gastos-mano-obra">$0</h3>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px]">
+              <span class="px-1.5 py-0.2 rounded-full bg-primary-container text-on-primary-container font-bold" id="stat-pct-mano-obra">0%</span>
+              <span class="text-on-surface-variant">del gasto total</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 4: Equipos, Fletes y Otros -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Equipos, Fletes y Varios</span>
+            <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">handyman</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold text-on-surface font-mono" id="stat-gastos-otros">$0</h3>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px] text-on-surface-variant">
+              Alquileres, transporte y varios
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Barra de Filtros, Búsqueda y Acciones Rápidas -->
+      <div class="bg-surface-container-lowest rounded-2xl p-4 sm:p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col gap-4">
+        
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <!-- Filtro por Categorías (Pills) -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="expense-category-filter-bar">
+            <!-- Se puebla dinámicamente -->
+          </div>
+
+          <!-- Acciones de Cabecera Local: Exportar y Nuevo Gasto -->
+          <div class="flex items-center gap-2 self-start lg:self-auto shrink-0">
+            <button onclick="exportExpensesToCSV()" class="px-3.5 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1.5 transition-colors">
+              <span class="material-symbols-outlined text-[16px] text-secondary">file_download</span>
+              <span>Descargar CSV (Excel)</span>
+            </button>
+            <button onclick="openExpenseModal()" class="px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-[0_8px_20px_-4px_rgba(22,51,40,0.3)] hover:opacity-95 transition-transform active:scale-95 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px]">add_circle</span>
+              <span>+ Nuevo Gasto</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros Secundarios: Selector de Capítulo y Búsqueda -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-3 border-t border-surface-container-high/60">
+          
+          <!-- Filtro por Capítulo -->
+          <div class="sm:col-span-4 flex items-center gap-2">
+            <span class="text-xs font-semibold text-on-surface-variant shrink-0">Capítulo:</span>
+            <select id="expense-chapter-filter" onchange="setExpenseChapterFilter(this.value)" class="w-full px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-xs text-on-surface font-semibold">
+              <option value="todos">Todos los Capítulos</option>
+              <!-- Opciones dinámicas -->
+            </select>
+          </div>
+
+          <!-- Barra de Búsqueda -->
+          <div class="sm:col-span-8 relative">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-outline">search</span>
+            <input type="text" id="expense-search-input" oninput="handleExpenseSearch(this.value)" placeholder="Buscar por concepto, proveedor o número de factura..." class="w-full pl-9 pr-3.5 py-2 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-xs text-on-surface placeholder:text-outline" />
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Tarjeta Contenedora de la Tabla de Gastos -->
+      <div class="bg-surface-container-lowest rounded-2xl shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 overflow-hidden">
+        
+        <div class="p-4 sm:p-5 bg-surface-container-low/70 border-b border-surface-container-high flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs shadow-sm">
+              <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-on-surface">Detalle de Compras y Comprobantes</h3>
+              <span class="text-xs text-on-surface-variant" id="expenses-table-count">Mostrando registros</span>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <span class="text-[10px] uppercase font-bold text-outline block">Subtotal Filtrado</span>
+            <span class="text-base sm:text-lg font-bold text-primary font-mono" id="expenses-table-subtotal">$0</span>
+          </div>
+        </div>
+
+        <!-- Tabla de Gastos -->
+        <div class="overflow-x-auto" id="expenses-table-container">
+          <!-- Renderizado dinámicamente -->
+        </div>
+
+      </div>
+
     </section>
 
     <section id="view-avance" class="view-section hidden flex-col gap-6">
-      <div class="bg-surface-container-lowest rounded-xl p-8 text-center max-w-xl mx-auto shadow-sm border border-surface-container-high/60 my-12">
-        <div class="w-16 h-16 rounded-full bg-secondary-container text-primary flex items-center justify-center mx-auto mb-4">
-          <span class="material-symbols-outlined text-[32px]">insert_chart</span>
+
+      <!-- Barra de Estado / Aviso -->
+      <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-secondary-container/40 rounded-xl border border-secondary-container">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
+          <span class="text-xs font-semibold text-on-secondary-container">Control Diario de Avance Físico y Supervisión Técnica</span>
+          <span class="text-xs text-on-surface-variant hidden md:inline">· Seguimiento de cubicaciones ejecutadas vs presupuestadas y estado de partidas</span>
         </div>
-        <h2 class="text-xl font-bold text-on-surface">Función 4: Actualizar Avances de Obra</h2>
-        <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">
-          Control diario del avance físico: cantidades ejecutadas contra lo presupuestado y estados rápidos (Pendiente, En proceso o Terminada).
-        </p>
-        <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-low text-xs font-semibold text-secondary">
-          <span class="material-symbols-outlined text-[16px]">schedule</span>
-          Programada para el Paso 5
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-primary" id="progress-active-summary-label">Cargando avances...</span>
         </div>
       </div>
+
+      <!-- Métricas Bento de Avance Físico (4 Tarjetas) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Tarjeta 1: % Avance Ponderado General -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Avance Físico Ponderado</span>
+            <div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">trending_up</span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-baseline gap-2">
+              <h3 class="text-2xl sm:text-3xl font-bold text-primary font-mono" id="stat-avance-ponderado">0.0%</h3>
+              <span class="text-xs font-semibold text-on-surface-variant">de la obra</span>
+            </div>
+            <!-- Barra de Progreso Visual Global -->
+            <div class="w-full bg-surface-container-high rounded-full h-2 mt-2 overflow-hidden">
+              <div id="stat-avance-global-bar" class="bg-primary h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p class="text-[10px] text-on-surface-variant mt-1.5" id="stat-avance-financiero-label">
+              Ejecutado: $0 de $0
+            </p>
+          </div>
+        </div>
+
+        <!-- Tarjeta 2: Partidas Terminadas -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Partidas Terminadas</span>
+            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-900 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">check_circle</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-2xl sm:text-3xl font-bold text-emerald-800 font-mono" id="stat-avance-terminadas">0</h3>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px] text-on-surface-variant">
+              <span class="font-bold text-emerald-700" id="stat-pct-terminadas">0%</span> del total de partidas
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 3: Partidas En Proceso -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Partidas En Proceso</span>
+            <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">pending</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-2xl sm:text-3xl font-bold text-amber-800 font-mono" id="stat-avance-en-proceso">0</h3>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px] text-on-surface-variant">
+              Activas en ejecución hoy
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 4: Partidas Pendientes -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Partidas Pendientes</span>
+            <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">pause_circle</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-2xl sm:text-3xl font-bold text-slate-700 font-mono" id="stat-avance-pendientes">0</h3>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px] text-on-surface-variant">
+              Por iniciar en obra
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Barra de Filtros, Búsqueda y Acciones Rápidas -->
+      <div class="bg-surface-container-lowest rounded-2xl p-4 sm:p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col gap-4">
+        
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <!-- Filtro por Estado (Pills) -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="progress-status-filter-bar">
+            <!-- Se puebla dinámicamente -->
+          </div>
+
+          <!-- Acciones: Exportar Acta a Excel -->
+          <div class="flex items-center gap-2 self-start lg:self-auto shrink-0">
+            <button onclick="exportProgressToCSV()" class="px-3.5 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1.5 transition-colors">
+              <span class="material-symbols-outlined text-[16px] text-secondary">file_download</span>
+              <span>Descargar Acta / Reporte (Excel)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros Secundarios: Selector de Capítulo y Búsqueda -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-3 border-t border-surface-container-high/60">
+          
+          <!-- Filtro por Capítulo -->
+          <div class="sm:col-span-4 flex items-center gap-2">
+            <span class="text-xs font-semibold text-on-surface-variant shrink-0">Capítulo:</span>
+            <select id="progress-chapter-filter" onchange="setProgressChapterFilter(this.value)" class="w-full px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-xs text-on-surface font-semibold">
+              <option value="todos">Todos los Capítulos</option>
+              <!-- Opciones dinámicas -->
+            </select>
+          </div>
+
+          <!-- Barra de Búsqueda -->
+          <div class="sm:col-span-8 relative">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-outline">search</span>
+            <input type="text" id="progress-search-input" oninput="handleProgressSearch(this.value)" placeholder="Buscar por elemento (ej. Z-1, VA-01) o actividad..." class="w-full pl-9 pr-3.5 py-2 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-xs text-on-surface placeholder:text-outline" />
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Tarjeta Contenedora de la Tabla de Control de Avance Físico -->
+      <div class="bg-surface-container-lowest rounded-2xl shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 overflow-hidden">
+        
+        <div class="p-4 sm:p-5 bg-surface-container-low/70 border-b border-surface-container-high flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs shadow-sm">
+              <span class="material-symbols-outlined text-[18px]">insert_chart</span>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-on-surface">Planilla de Cubicaciones y Avance por Partida</h3>
+              <span class="text-xs text-on-surface-variant" id="progress-table-count">Mostrando partidas</span>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <span class="text-[10px] uppercase font-bold text-outline block">Valor Ejecutado Ponderado</span>
+            <span class="text-base sm:text-lg font-bold text-primary font-mono" id="progress-table-executed-total">$0</span>
+          </div>
+        </div>
+
+        <!-- Tabla de Avance -->
+        <div class="overflow-x-auto" id="progress-table-container">
+          <!-- Renderizado dinámicamente -->
+        </div>
+
+      </div>
+
     </section>
 
     <section id="view-resumen" class="view-section hidden flex-col gap-6">
-      <div class="bg-surface-container-lowest rounded-xl p-8 text-center max-w-xl mx-auto shadow-sm border border-surface-container-high/60 my-12">
-        <div class="w-16 h-16 rounded-full bg-secondary-container text-primary flex items-center justify-center mx-auto mb-4">
-          <span class="material-symbols-outlined text-[32px]">grid_view</span>
+
+      <!-- Barra de Estado / Aviso Directivo -->
+      <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-secondary-container/40 rounded-xl border border-secondary-container">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
+          <span class="text-xs font-semibold text-on-secondary-container">Panel Directivo de Auditoría y Control de Obra</span>
+          <span class="text-xs text-on-surface-variant hidden md:inline">· Comparativa de Presupuesto Inicial vs Gastos Reales vs Avance Físico</span>
         </div>
-        <h2 class="text-xl font-bold text-on-surface">Función 5: Resumen de Obra y Control</h2>
-        <p class="text-sm text-on-surface-variant mt-2 leading-relaxed">
-          El panel directivo para consultar en un vistazo: Presupuesto Inicial, Gastos Acumulados, Saldo Disponible y Porcentaje Utilizado con alertas de sobrecosto.
-        </p>
-        <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-low text-xs font-semibold text-secondary">
-          <span class="material-symbols-outlined text-[16px]">schedule</span>
-          Programada para el Paso 6
+        <div class="flex items-center gap-2">
+          <span id="resumen-salud-pill" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+            🟢 Obra en Control
+          </span>
         </div>
       </div>
+
+      <!-- Métricas Bento Principales (4 Tarjetas Financieras) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Tarjeta 1: Presupuesto Total Programado -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Presupuesto Programado</span>
+            <div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">calculate</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold text-on-surface font-mono" id="resumen-presupuesto-total">$0</h3>
+            <p class="text-[11px] text-on-surface-variant mt-1" id="resumen-presupuesto-detalle">
+              Total proyectado en memorias de cálculo
+            </p>
+          </div>
+        </div>
+
+        <!-- Tarjeta 2: Gastos Reales Acumulados -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Gastos Reales Pagados</span>
+            <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold text-amber-900 font-mono" id="resumen-gastos-total">$0</h3>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px]">
+              <span class="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 font-bold" id="resumen-pct-gastado">0%</span>
+              <span class="text-on-surface-variant">del presupuesto utilizado</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 3: Saldo Presupuestal Disponible -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Saldo Disponible</span>
+            <div class="w-8 h-8 rounded-full bg-secondary-container text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold text-primary font-mono" id="resumen-saldo-total">$0</h3>
+            <div class="flex items-center gap-1.5 mt-1 text-[11px]">
+              <span class="px-1.5 py-0.2 rounded-full bg-secondary-container text-primary font-bold" id="resumen-pct-saldo">0%</span>
+              <span class="text-on-surface-variant" id="resumen-saldo-estado">Superávit a favor</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 4: Semáforo y Salud (Físico vs Financiero) -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-on-surface-variant">Eficiencia (Físico vs Gasto)</span>
+            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-900 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">balance</span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between text-xs font-bold mb-1">
+              <span class="text-primary">Físico: <span id="resumen-pct-fisico">0%</span></span>
+              <span class="text-amber-800">Gasto: <span id="resumen-pct-financiero">0%</span></span>
+            </div>
+            <!-- Barras comparativas emparejadas -->
+            <div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden flex flex-col gap-0.5">
+              <div id="resumen-bar-fisico" class="bg-primary h-1 rounded-full" style="width: 0%"></div>
+              <div id="resumen-bar-financiero" class="bg-amber-600 h-1 rounded-full" style="width: 0%"></div>
+            </div>
+            <p class="text-[10px] font-semibold text-emerald-800 mt-1 truncate" id="resumen-desempeno-label">
+              Excelente: Avance físico supera al gasto
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sección Intermedia: Distribución de Recursos y Matriz de Alertas -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- COLUMNA 1 (Span 5): Desglose de Gastos por Tipo de Recurso -->
+        <div class="lg:col-span-5 bg-surface-container-lowest rounded-2xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col gap-4">
+          <div class="flex items-center justify-between pb-3 border-b border-surface-container-high/60">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
+              <h3 class="text-sm font-bold text-on-surface">Distribución por Tipo de Costo</h3>
+            </div>
+            <span class="text-xs text-on-surface-variant" id="resumen-distribucion-total">$0</span>
+          </div>
+
+          <!-- Barras de Recursos -->
+          <div class="flex flex-col gap-3 text-xs" id="resumen-recursos-container">
+            <!-- Renderizado dinámicamente -->
+          </div>
+        </div>
+
+        <!-- COLUMNA 2 (Span 7): Matriz de Alertas Inteligentes y Supervisión -->
+        <div class="lg:col-span-7 bg-surface-container-lowest rounded-2xl p-5 shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 flex flex-col gap-4">
+          <div class="flex items-center justify-between pb-3 border-b border-surface-container-high/60">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-amber-700">crisis_alert</span>
+              <h3 class="text-sm font-bold text-on-surface">Alertas Inteligentes y Estado de Riesgos</h3>
+            </div>
+            <span class="text-[10px] uppercase font-bold text-outline">Auditoría en Vivo</span>
+          </div>
+
+          <!-- Lista de Tarjetas de Alerta -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs" id="resumen-alertas-container">
+            <!-- Renderizado dinámicamente -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tarjeta Contenedora de la Tabla de Balance por Capítulos -->
+      <div class="bg-surface-container-lowest rounded-2xl shadow-[0_10px_30px_-8px_rgba(35,45,40,0.05)] border border-surface-container-high/50 overflow-hidden">
+        
+        <div class="p-4 sm:p-5 bg-surface-container-low/70 border-b border-surface-container-high flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs shadow-sm">
+              <span class="material-symbols-outlined text-[18px]">table_chart</span>
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-on-surface">Balance Presupuestal y Control por Capítulos</h3>
+              <span class="text-xs text-on-surface-variant">Cruce de cuentas: Presupuesto vs Gastos Reales vs Avance Físico</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="window.print()" class="px-3 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold flex items-center gap-1 transition-colors">
+              <span class="material-symbols-outlined text-[15px] text-secondary">print</span>
+              <span>Imprimir / PDF</span>
+            </button>
+            <button onclick="exportSummaryToCSV()" class="px-3.5 py-1.5 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-sm hover:opacity-95 flex items-center gap-1 transition-transform active:scale-95">
+              <span class="material-symbols-outlined text-[15px]">file_download</span>
+              <span>Exportar Balance (Excel)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla Comparativa -->
+        <div class="overflow-x-auto" id="resumen-table-container">
+          <!-- Renderizado dinámicamente -->
+        </div>
+
+      </div>
+
     </section>
 
   </div>
@@ -712,6 +1148,307 @@
           <button type="submit" class="px-5 py-2 rounded-full bg-primary text-on-primary font-semibold shadow-md hover:opacity-95 flex items-center gap-1.5">
             <span class="material-symbols-outlined text-[16px]">check</span>
             Guardar en Tabla
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: REGISTRAR / EDITAR GASTO DE OBRA (COMPRA / PAGO JORNAL)             -->
+  <!-- ========================================================================= -->
+  <div id="modal-gasto" class="fixed inset-0 z-50 bg-on-surface/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-surface-container-lowest rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-surface-container-high/60 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-surface-container-high/60">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-on-surface" id="modal-gasto-title">Registrar Gasto de Obra</h3>
+            <p class="text-xs text-on-surface-variant">Comprobante de compra de material, jornal o servicio</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-gasto')" class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <form id="form-gasto" onsubmit="handleSaveExpense(event)" class="mt-4 flex flex-col gap-3.5 text-xs">
+        
+        <!-- Fecha y Categoría -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Fecha del Gasto / Compra *</label>
+            <input type="date" id="gasto-fecha" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-semibold" />
+          </div>
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Categoría de Gasto *</label>
+            <select id="gasto-categoria" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-semibold">
+              <option value="materiales">🧱 Materiales de Construcción</option>
+              <option value="mano_obra">👷 Mano de Obra / Jornales</option>
+              <option value="equipos">🛠️ Equipos, Herramientas y Alquileres</option>
+              <option value="transporte">🚚 Transporte, Fletes y Botada</option>
+              <option value="otros">📑 Administrativo y Varios</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Concepto / Descripción -->
+        <div>
+          <label class="font-bold text-on-surface mb-1 block">Concepto o Descripción del Gasto *</label>
+          <input type="text" id="gasto-concepto" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium" placeholder="Ej. 50 Bultos de Cemento Argos Uso Estructural / Pago semana cuadrilla" />
+        </div>
+
+        <!-- Capítulo Presupuestal Asociado y Proveedor -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Capítulo Presupuestal *</label>
+            <select id="gasto-capitulo" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-semibold">
+              <!-- Se puebla dinámicamente con los capítulos de obra -->
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Proveedor / Beneficiario *</label>
+            <input type="text" id="gasto-proveedor" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium" placeholder="Ej. Depósito El Constructor / Maestro Pedro" />
+          </div>
+        </div>
+
+        <!-- Comprobante y Medio de Pago -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">N° Factura / Recibo / Remisión</label>
+            <input type="text" id="gasto-comprobante" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-primary font-bold" placeholder="Ej. FAC-4812 o Recibo N° 07" />
+          </div>
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Forma / Medio de Pago</label>
+            <select id="gasto-medio-pago" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface">
+              <option value="Transferencia Bancolombia">Transferencia Bancolombia</option>
+              <option value="Transferencia Nequi">Transferencia Nequi / Daviplata</option>
+              <option value="Efectivo">Efectivo (Caja Menor)</option>
+              <option value="Tarjeta de Débito/Crédito">Tarjeta Débito / Crédito</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Otro">Otro medio de pago</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Cuadro de Cantidad, Unidad y Precio Unitario -->
+        <div class="p-3 bg-surface-container-low rounded-xl border border-surface-container-high">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-secondary block mb-2">
+            Desglose de Valores y Cantidades
+          </span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Cantidad *</label>
+              <input type="number" step="any" min="0.001" id="gasto-cantidad" required oninput="calculateModalExpensePreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1" value="1" />
+            </div>
+            <div>
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Unidad de Medida *</label>
+              <input type="text" list="lista-unidades-gasto" id="gasto-unidad" required class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-semibold text-center" placeholder="bultos / viaje / global" value="global" />
+              <datalist id="lista-unidades-gasto">
+                <option value="bultos">
+                <option value="viaje">
+                <option value="m³">
+                <option value="m²">
+                <option value="ml">
+                <option value="kg">
+                <option value="unidades">
+                <option value="días">
+                <option value="semana">
+                <option value="global">
+              </datalist>
+            </div>
+            <div>
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Valor Unitario ($ COP) *</label>
+              <input type="number" step="any" min="0" id="gasto-precio-unitario" required oninput="calculateModalExpensePreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Valor Total Pagado Calculado o Ajustado -->
+        <div class="p-3.5 bg-secondary-container/50 border border-secondary-container rounded-xl flex flex-col gap-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-on-secondary-container font-semibold">Cálculo en Vivo:</span>
+            <span class="font-mono text-primary font-bold" id="expense-preview-formula">1 × $0 COP = $0 COP</span>
+          </div>
+          <div class="flex items-center justify-between text-xs pt-1.5 border-t border-secondary-container">
+            <span class="text-on-secondary-container font-bold text-xs">Valor Total Pagado ($ COP):</span>
+            <div class="flex items-center gap-1">
+              <span class="font-bold text-primary text-base font-mono" id="expense-preview-total">$0 COP</span>
+              <input type="hidden" id="gasto-total" value="0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Notas / Observaciones Adicionales -->
+        <div>
+          <label class="font-semibold text-on-surface mb-1 block text-[11px]">Observaciones / Notas de Obra</label>
+          <textarea id="gasto-notas" rows="2" class="w-full px-3.5 py-2 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface" placeholder="Detalles de entrega, lugar de descarga, firma de quien recibe, etc."></textarea>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="pt-3 border-t border-surface-container-high/60 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-gasto')" class="px-4 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-semibold">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-full bg-primary text-on-primary font-semibold shadow-md hover:opacity-95 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">check</span>
+            Guardar en Bitácora
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ACTUALIZAR AVANCE FÍSICO DE PARTIDA                                 -->
+  <!-- ========================================================================= -->
+  <div id="modal-avance" class="fixed inset-0 z-50 bg-on-surface/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-surface-container-lowest rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-surface-container-high/60 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-surface-container-high/60">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">insert_chart</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-on-surface" id="modal-avance-title">Actualizar Avance de Partida</h3>
+            <p class="text-xs text-on-surface-variant">Inspección técnica de obra y control de cantidades</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-avance')" class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- Tarjeta Resumen de la Partida Presupuestada -->
+      <div class="mt-4 p-3.5 bg-surface-container-low rounded-xl border border-surface-container-high flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <span class="px-2 py-0.5 rounded-md bg-secondary-container text-on-secondary-container text-[11px] font-bold" id="modal-avance-elemento">
+            Ítem
+          </span>
+          <span class="text-xs text-on-surface-variant font-medium truncate" id="modal-avance-capitulo">
+            Capítulo
+          </span>
+        </div>
+        <h4 class="text-xs font-bold text-on-surface leading-snug" id="modal-avance-actividad">
+          Actividad
+        </h4>
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-surface-container-high text-xs">
+          <div>
+            <span class="text-[10px] text-outline block uppercase font-bold">Cubicación Proyectada:</span>
+            <span class="font-bold text-primary font-mono text-sm" id="modal-avance-proyectado">0.00 m³</span>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-outline block uppercase font-bold">Costo Presupuestado:</span>
+            <span class="font-bold text-on-surface font-mono text-sm" id="modal-avance-costo-total">$0 COP</span>
+          </div>
+        </div>
+      </div>
+
+      <form id="form-avance" onsubmit="handleSaveProgress(event)" class="mt-4 flex flex-col gap-3.5 text-xs">
+        <input type="hidden" id="avance-item-id" />
+        <input type="hidden" id="avance-proyectado-val" value="0" />
+        <input type="hidden" id="avance-costo-val" value="0" />
+
+        <!-- Fecha de Inspección y Estado -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Fecha de Inspección *</label>
+            <input type="date" id="avance-fecha" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-semibold" />
+          </div>
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Estado de la Partida *</label>
+            <select id="avance-estado" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold">
+              <option value="pendiente">⚪ Pendiente (0% ejecutado)</option>
+              <option value="en_proceso">🟡 En proceso (en ejecución)</option>
+              <option value="terminada">🟢 Terminada y recibida (100%)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Control Interactivo de Cantidad Ejecutada y Porcentaje -->
+        <div class="p-3 bg-surface-container-low rounded-xl border border-surface-container-high flex flex-col gap-3">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-secondary block">
+            Cálculo de Cantidad y Porcentaje
+          </span>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Cantidad Ejecutada (m³) *</label>
+              <input type="number" step="0.01" min="0" id="avance-ejecutado" required oninput="calculateProgressFromExecuted()" class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-primary font-bold text-center text-sm font-mono" placeholder="0.00" />
+            </div>
+            <div>
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">% Avance Físico *</label>
+              <div class="relative">
+                <input type="number" step="0.5" min="0" max="100" id="avance-porcentaje" required oninput="calculateProgressFromPercentage()" class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-primary font-bold text-center text-sm font-mono pr-7" placeholder="0" />
+                <span class="absolute right-3 top-2 text-xs font-bold text-outline">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slider de Porcentaje -->
+          <div>
+            <div class="flex items-center justify-between text-[10px] text-outline font-semibold mb-1">
+              <span>0%</span>
+              <span>50%</span>
+              <span>100%</span>
+            </div>
+            <input type="range" min="0" max="100" step="1" id="avance-range" oninput="calculateProgressFromRange(this.value)" class="w-full accent-primary cursor-pointer h-2 bg-surface-container-high rounded-lg" />
+          </div>
+
+          <!-- Botones Rápidos de Porcentaje -->
+          <div class="flex items-center justify-between gap-1.5 flex-wrap pt-1">
+            <button type="button" onclick="setQuickProgress(0)" class="flex-1 py-1 px-2 rounded-md bg-surface-container-high hover:bg-surface-container-highest text-[10px] font-bold text-on-surface text-center">
+              0%
+            </button>
+            <button type="button" onclick="setQuickProgress(25)" class="flex-1 py-1 px-2 rounded-md bg-surface-container-high hover:bg-surface-container-highest text-[10px] font-bold text-on-surface text-center">
+              25%
+            </button>
+            <button type="button" onclick="setQuickProgress(50)" class="flex-1 py-1 px-2 rounded-md bg-surface-container-high hover:bg-surface-container-highest text-[10px] font-bold text-on-surface text-center">
+              50%
+            </button>
+            <button type="button" onclick="setQuickProgress(75)" class="flex-1 py-1 px-2 rounded-md bg-surface-container-high hover:bg-surface-container-highest text-[10px] font-bold text-on-surface text-center">
+              75%
+            </button>
+            <button type="button" onclick="setQuickProgress(100)" class="flex-1 py-1 px-2 rounded-md bg-secondary-container hover:bg-secondary text-primary hover:text-white text-[10px] font-bold text-center transition-colors">
+              100%
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Cálculo en Vivo -->
+        <div class="p-3 bg-secondary-container/50 border border-secondary-container rounded-xl flex flex-col gap-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-on-secondary-container font-semibold">Cubicación Pendiente:</span>
+            <span class="font-mono text-primary font-bold" id="modal-avance-calc-pendiente">0.00 m³</span>
+          </div>
+          <div class="flex items-center justify-between text-xs pt-1 border-t border-secondary-container">
+            <span class="text-on-secondary-container font-bold">Valor Monetario Ejecutado:</span>
+            <span class="font-bold text-primary font-mono text-sm" id="modal-avance-calc-valor">$0 COP</span>
+          </div>
+        </div>
+
+        <!-- Observaciones / Notas Técnicas -->
+        <div>
+          <label class="font-semibold text-on-surface mb-1 block text-[11px]">Observaciones / Registro de Supervisión</label>
+          <textarea id="avance-notas" rows="2" class="w-full px-3.5 py-2 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface" placeholder="Ej. Concreto vaciado y vibrado según norma NSR-10. Probetas rotuladas a 28 días."></textarea>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="pt-3 border-t border-surface-container-high/60 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-avance')" class="px-4 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-semibold">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-full bg-primary text-on-primary font-semibold shadow-md hover:opacity-95 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">check</span>
+            Guardar Avance
           </button>
         </div>
 
@@ -905,6 +1642,95 @@
       "04. Mampostería y Muros",
       "05. Instalaciones",
       "06. Acabados"
+    ];
+
+    // Categorías de Gastos de Obra
+    const CATEGORIAS_GASTOS = [
+      { id: "todos", nombre: "Todas", emoji: "📋", icono: "receipt_long", badgeClass: "bg-surface-container-high text-on-surface" },
+      { id: "materiales", nombre: "Materiales", emoji: "🧱", icono: "token", badgeClass: "bg-primary-container text-on-primary-container" },
+      { id: "mano_obra", nombre: "Mano de Obra", emoji: "👷", icono: "engineering", badgeClass: "bg-secondary-container text-on-secondary-container" },
+      { id: "equipos", nombre: "Equipos y Herramientas", emoji: "🛠️", icono: "handyman", badgeClass: "bg-amber-100 text-amber-900" },
+      { id: "transporte", nombre: "Transporte y Fletes", emoji: "🚚", icono: "local_shipping", badgeClass: "bg-cyan-100 text-cyan-900" },
+      { id: "otros", nombre: "Administrativo y Varios", emoji: "📑", icono: "pending_actions", badgeClass: "bg-purple-100 text-purple-900" }
+    ];
+
+    // Bitácora de Gastos y Compras Iniciales (Casa Valparaíso)
+    const DEFAULT_EXPENSES = [
+      {
+        id: "gasto-01",
+        fecha: "2026-10-24",
+        comprobante: "FAC-3912",
+        concepto: "40 Bultos de Cemento Gris Argos Uso Estructural (50kg)",
+        categoria: "materiales",
+        capitulo: "02. Cimentación",
+        proveedor: "Depósito El Constructor Rionegro",
+        medioPago: "Transferencia Bancolombia",
+        cantidad: 40,
+        unidad: "bultos",
+        precioUnitario: 34500,
+        total: 1380000,
+        notas: "Descargue en punto de acopio obra. Para fundida de zapatas Z-1 y Z-2."
+      },
+      {
+        id: "gasto-02",
+        fecha: "2026-10-25",
+        comprobante: "REC-014",
+        concepto: "Jornal Semanal Cuadrilla Cimentación (1 Oficial + 2 Ayudantes)",
+        categoria: "mano_obra",
+        capitulo: "02. Cimentación",
+        proveedor: "Maestro Jairo Gómez",
+        medioPago: "Efectivo",
+        cantidad: 1,
+        unidad: "semana",
+        precioUnitario: 1850000,
+        total: 1850000,
+        notas: "Semana 1: Excavación manual, colocación de solados y armado de parrillas."
+      },
+      {
+        id: "gasto-03",
+        fecha: "2026-10-26",
+        comprobante: "FAC-8902",
+        concepto: "Acero Figurado Varilla Corrugada 1/2\" W60 (35 Unidades)",
+        categoria: "materiales",
+        capitulo: "02. Cimentación",
+        proveedor: "Hierros & Mallas del Oriente S.A.S.",
+        medioPago: "Transferencia Bancolombia",
+        cantidad: 35,
+        unidad: "unidades",
+        precioUnitario: 42000,
+        total: 1470000,
+        notas: "Varillas cortadas y dobladas según plano estructural E-01."
+      },
+      {
+        id: "gasto-04",
+        fecha: "2026-10-27",
+        comprobante: "REC-108",
+        concepto: "Viaje de Volqueta Arena Gruesa de Peña Lavada (6 m³)",
+        categoria: "transporte",
+        capitulo: "01. Preliminares",
+        proveedor: "Transportes Agregados San Antonio",
+        medioPago: "Efectivo",
+        cantidad: 1,
+        unidad: "viaje",
+        precioUnitario: 380000,
+        total: 380000,
+        notas: "Flete directo a pie de obra para morteros y mezclas."
+      },
+      {
+        id: "gasto-05",
+        fecha: "2026-10-28",
+        comprobante: "REM-2041",
+        concepto: "Alquiler de Rana Compactadora y Formaleta Metálica",
+        categoria: "equipos",
+        capitulo: "01. Preliminares",
+        proveedor: "Alquiequipos Rionegro",
+        medioPago: "Transferencia Nequi",
+        cantidad: 3,
+        unidad: "días",
+        precioUnitario: 65000,
+        total: 195000,
+        notas: "Alquiler por 3 jornadas de trabajo para compactación de zanjas y cimientos."
+      }
     ];
 
     // Partidas con Memorias de Medidas (Largo, Ancho, Alto, Volumen, Costo Total)
@@ -1103,6 +1929,27 @@
       { id: "sheet-E01", categoria: "estructural", codigo: "E-01", nombre: "E-01 Cimentación", subtitulo: "Zapatas Z-1, Z-2 y Vigas", tipo: "vector", icono: "foundation", tamano: "Vectorial · 1:50", activo: false }
     ];
 
+    // Estados de Avance de Obra
+    const ESTADOS_AVANCE = [
+      { id: "todos", nombre: "Todas", emoji: "📊", badgeClass: "bg-surface-container-high text-on-surface" },
+      { id: "en_proceso", nombre: "En Proceso", emoji: "🟡", badgeClass: "bg-amber-100 text-amber-900 border border-amber-300" },
+      { id: "terminada", nombre: "Terminadas", emoji: "🟢", badgeClass: "bg-emerald-100 text-emerald-900 border border-emerald-300" },
+      { id: "pendiente", nombre: "Pendientes", emoji: "⚪", badgeClass: "bg-slate-100 text-slate-800 border border-slate-300" }
+    ];
+
+    // Registro Inicial de Avances Físicos por Partida (Casa Valparaíso)
+    const DEFAULT_PROGRESS = {
+      "item-101": { ejecutado: 30.80, porcentaje: 100, estado: "terminada", fecha: "2026-10-25", notas: "Excavación manual completada al 100% y solados de limpieza vaciados." },
+      "item-201": { ejecutado: 2.42, porcentaje: 100, estado: "terminada", fecha: "2026-10-27", notas: "4 zapatas esquineras Z-1 armadas y fundidas con concreto 3000 PSI." },
+      "item-202": { ejecutado: 1.32, porcentaje: 60, estado: "en_proceso", fecha: "2026-10-28", notas: "4 de 6 zapatas intermedias Z-2 armadas; listas para vaciado." },
+      "item-203": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-28", notas: "Pendiente replanteo y armado de parrillas medianeras." },
+      "item-204": { ejecutado: 1.35, porcentaje: 50, estado: "en_proceso", fecha: "2026-10-29", notas: "Acero longitudinal colocado; formaleta en proceso en tramo norte." },
+      "item-205": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-29", notas: "Pendiente inicio de excavación y armado transversal." },
+      "item-301": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-29", notas: "Capítulo programado para iniciar tras desencofrado de cimientos." },
+      "item-302": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-29", notas: "Programado tras fundida de vigas de amarre." },
+      "item-401": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-29", notas: "Programado tras estructura de pórticos." }
+    };
+
     // ==========================================
     // ESTADO GLOBAL
     // ==========================================
@@ -1110,10 +1957,22 @@
     let appSheets = JSON.parse(localStorage.getItem('obracontrol_sheets')) || DEFAULT_SHEETS;
     let appChapters = JSON.parse(localStorage.getItem('obracontrol_chapters')) || DEFAULT_CHAPTERS;
     let appBudget = JSON.parse(localStorage.getItem('obracontrol_budget_calc')) || DEFAULT_BUDGET;
+    let appExpenses = JSON.parse(localStorage.getItem('obracontrol_expenses')) || DEFAULT_EXPENSES;
+    let appProgress = JSON.parse(localStorage.getItem('obracontrol_progress')) || DEFAULT_PROGRESS;
 
     let activeCategoryFilter = "todos";
     let activeBudgetChapterFilter = "todos";
     let editingApuId = null;
+
+    let activeExpenseCategoryFilter = "todos";
+    let activeExpenseChapterFilter = "todos";
+    let expenseSearchQuery = "";
+    let editingExpenseId = null;
+
+    let activeProgressStatusFilter = "todos";
+    let activeProgressChapterFilter = "todos";
+    let progressSearchQuery = "";
+    let editingProgressItemId = null;
 
     let currentZoom = 1;
     let currentPdfDoc = null;
@@ -1135,6 +1994,21 @@
       renderSheetsList();
       renderViewer();
       renderBudgetView();
+      renderExpensesView();
+      renderProgressView();
+      renderSummaryView();
+
+      const initialTab = window.location.hash ? window.location.hash.replace('#', '') : 'presupuesto';
+      if (['planos', 'presupuesto', 'gastos', 'avance', 'resumen'].includes(initialTab)) {
+        switchTab(initialTab);
+      }
+    });
+
+    window.addEventListener('hashchange', () => {
+      const tab = window.location.hash.replace('#', '');
+      if (['planos', 'presupuesto', 'gastos', 'avance', 'resumen'].includes(tab)) {
+        switchTab(tab);
+      }
     });
 
     // =========================================================================
@@ -2110,19 +2984,1518 @@
         appSheets = [ ...DEFAULT_SHEETS ];
         appChapters = [ ...DEFAULT_CHAPTERS ];
         appBudget = [ ...DEFAULT_BUDGET ];
+        appExpenses = [ ...DEFAULT_EXPENSES ];
+        appProgress = { ...DEFAULT_PROGRESS };
         localStorage.removeItem('obracontrol_project');
         localStorage.removeItem('obracontrol_sheets');
         localStorage.removeItem('obracontrol_chapters');
         localStorage.removeItem('obracontrol_budget_calc');
+        localStorage.removeItem('obracontrol_expenses');
+        localStorage.removeItem('obracontrol_progress');
         activeCategoryFilter = "todos";
         activeBudgetChapterFilter = "todos";
+        activeExpenseCategoryFilter = "todos";
+        activeExpenseChapterFilter = "todos";
+        expenseSearchQuery = "";
+        activeProgressStatusFilter = "todos";
+        activeProgressChapterFilter = "todos";
+        progressSearchQuery = "";
         renderProjectInfo();
         renderCategoryFilters();
         renderSheetsList();
         renderViewer();
         renderBudgetView();
+        renderExpensesView();
+        renderProgressView();
+        renderSummaryView();
         closeModal('modal-proyecto');
       }
+    }
+
+    // =========================================================================
+    // LÓGICA DE LA BITÁCORA DE GASTOS Y COMPRAS (FUNCIÓN 3)
+    // =========================================================================
+
+    function renderExpensesView() {
+      renderExpenseMetrics();
+      renderExpenseCategoryFilters();
+      populateExpenseChapterDropdown();
+      renderExpensesTable();
+    }
+
+    // Métricas Superiores de Gastos
+    function renderExpenseMetrics() {
+      let totalGastos = 0;
+      let totalMateriales = 0;
+      let totalManoObra = 0;
+      let totalOtros = 0;
+
+      appExpenses.forEach(exp => {
+        const val = Number(exp.total) || 0;
+        totalGastos += val;
+
+        if (exp.categoria === 'materiales') {
+          totalMateriales += val;
+        } else if (exp.categoria === 'mano_obra') {
+          totalManoObra += val;
+        } else {
+          totalOtros += val;
+        }
+      });
+
+      const pctMateriales = totalGastos > 0 ? ((totalMateriales / totalGastos) * 100).toFixed(0) : "0";
+      const pctManoObra = totalGastos > 0 ? ((totalManoObra / totalGastos) * 100).toFixed(0) : "0";
+
+      const elTotal = document.getElementById('stat-gastos-total');
+      const elConteo = document.getElementById('stat-gastos-conteo');
+      const elMateriales = document.getElementById('stat-gastos-materiales');
+      const elPctMat = document.getElementById('stat-pct-materiales');
+      const elManoObra = document.getElementById('stat-gastos-mano-obra');
+      const elPctMO = document.getElementById('stat-pct-mano-obra');
+      const elOtros = document.getElementById('stat-gastos-otros');
+      const elSummaryLabel = document.getElementById('expenses-active-summary-label');
+
+      if (elTotal) elTotal.textContent = formatCOP(totalGastos);
+      if (elConteo) elConteo.textContent = appExpenses.length;
+      if (elMateriales) elMateriales.textContent = formatCOP(totalMateriales);
+      if (elPctMat) elPctMat.textContent = `${pctMateriales}%`;
+      if (elManoObra) elManoObra.textContent = formatCOP(totalManoObra);
+      if (elPctMO) elPctMO.textContent = `${pctManoObra}%`;
+      if (elOtros) elOtros.textContent = formatCOP(totalOtros);
+      if (elSummaryLabel) elSummaryLabel.textContent = `Total pagado: ${formatCOP(totalGastos)} · ${appExpenses.length} comprobantes`;
+    }
+
+    // Filtros por Categoría de Gastos
+    function renderExpenseCategoryFilters() {
+      const container = document.getElementById('expense-category-filter-bar');
+      if (!container) return;
+      container.innerHTML = "";
+
+      CATEGORIAS_GASTOS.forEach(cat => {
+        const count = (cat.id === "todos")
+          ? appExpenses.length
+          : appExpenses.filter(e => e.categoria === cat.id).length;
+
+        const isSelected = (activeExpenseCategoryFilter === cat.id);
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all ${
+          isSelected
+            ? 'bg-primary text-on-primary shadow-sm'
+            : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+        }`;
+        btn.onclick = () => setExpenseCategoryFilter(cat.id);
+
+        btn.innerHTML = `
+          <span>${cat.emoji}</span>
+          <span>${cat.nombre}</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-surface-container-high text-on-surface-variant'}">${count}</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function setExpenseCategoryFilter(catId) {
+      activeExpenseCategoryFilter = catId;
+      renderExpenseCategoryFilters();
+      renderExpensesTable();
+    }
+
+    // Poblar Selector de Capítulos en Filtro y Modal
+    function populateExpenseChapterDropdown() {
+      const selectFilter = document.getElementById('expense-chapter-filter');
+      const selectModal = document.getElementById('gasto-capitulo');
+
+      if (selectFilter) {
+        const currentVal = selectFilter.value || "todos";
+        selectFilter.innerHTML = `<option value="todos">Todos los Capítulos (${appExpenses.length})</option>`;
+        appChapters.forEach(cap => {
+          const count = appExpenses.filter(e => e.capitulo === cap).length;
+          const opt = document.createElement('option');
+          opt.value = cap;
+          opt.textContent = `${cap} (${count})`;
+          selectFilter.appendChild(opt);
+        });
+        selectFilter.value = currentVal;
+      }
+
+      if (selectModal) {
+        const currentModalVal = selectModal.value;
+        selectModal.innerHTML = "";
+        appChapters.forEach(cap => {
+          const opt = document.createElement('option');
+          opt.value = cap;
+          opt.textContent = cap;
+          selectModal.appendChild(opt);
+        });
+        const optGen = document.createElement('option');
+        optGen.value = "00. General / Costos Indirectos";
+        optGen.textContent = "00. General / Costos Indirectos";
+        selectModal.appendChild(optGen);
+
+        if (currentModalVal) {
+          selectModal.value = currentModalVal;
+        }
+      }
+    }
+
+    function setExpenseChapterFilter(chap) {
+      activeExpenseChapterFilter = chap;
+      renderExpensesTable();
+    }
+
+    function handleExpenseSearch(query) {
+      expenseSearchQuery = (query || "").trim().toLowerCase();
+      renderExpensesTable();
+    }
+
+    // Renderizar Tabla de Gastos
+    function renderExpensesTable() {
+      const container = document.getElementById('expenses-table-container');
+      if (!container) return;
+
+      const filtered = appExpenses.filter(item => {
+        const matchCat = (activeExpenseCategoryFilter === "todos" || item.categoria === activeExpenseCategoryFilter);
+        const matchChap = (activeExpenseChapterFilter === "todos" || item.capitulo === activeExpenseChapterFilter);
+        
+        let matchQuery = true;
+        if (expenseSearchQuery) {
+          const searchable = `${item.concepto} ${item.proveedor} ${item.comprobante} ${item.notas || ''} ${item.medioPago || ''}`.toLowerCase();
+          matchQuery = searchable.includes(expenseSearchQuery);
+        }
+
+        return matchCat && matchChap && matchQuery;
+      });
+
+      // Calcular Subtotal Filtrado
+      let subtotal = 0;
+      filtered.forEach(i => subtotal += (Number(i.total) || 0));
+
+      const elSubtotal = document.getElementById('expenses-table-subtotal');
+      const elCount = document.getElementById('expenses-table-count');
+
+      if (elSubtotal) elSubtotal.textContent = formatCOP(subtotal);
+      if (elCount) {
+        elCount.textContent = `Mostrando ${filtered.length} de ${appExpenses.length} registro(s)`;
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 px-4 bg-surface-container-low/40">
+            <span class="material-symbols-outlined text-[42px] text-outline mb-2 block">receipt_long</span>
+            <h4 class="text-sm font-bold text-on-surface">No se encontraron gastos registrados</h4>
+            <p class="text-xs text-on-surface-variant mt-1 max-w-sm mx-auto">
+              ${expenseSearchQuery || activeExpenseCategoryFilter !== 'todos' || activeExpenseChapterFilter !== 'todos'
+                ? 'No hay egresos que coincidan con los filtros seleccionados. Intenta restablecer los filtros.'
+                : 'Aún no has registrado ninguna compra de material o pago de jornal en la bitácora.'}
+            </p>
+            <div class="mt-4 flex items-center justify-center gap-2">
+              ${(expenseSearchQuery || activeExpenseCategoryFilter !== 'todos' || activeExpenseChapterFilter !== 'todos') ? `
+                <button onclick="clearExpenseFilters()" class="px-3.5 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-xs font-semibold text-on-surface">
+                  Limpiar Filtros
+                </button>
+              ` : ''}
+              <button onclick="openExpenseModal()" class="px-4 py-1.5 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-sm hover:opacity-95 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[15px]">add</span>
+                + Registrar Primer Gasto
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      let rowsHtml = "";
+      filtered.forEach(item => {
+        const catObj = CATEGORIAS_GASTOS.find(c => c.id === item.categoria) || CATEGORIAS_GASTOS[1];
+        const cant = Number(item.cantidad) || 1;
+        const pu = Number(item.precioUnitario) || 0;
+        const tot = Number(item.total) || 0;
+
+        rowsHtml += `
+          <tr class="border-b border-surface-container-high/40 hover:bg-surface-container-low/40 transition-colors">
+            <!-- Fecha -->
+            <td class="py-3 px-4 whitespace-nowrap font-mono text-xs text-on-surface">
+              ${item.fecha}
+            </td>
+
+            <!-- Comprobante / Recibo -->
+            <td class="py-3 px-3 whitespace-nowrap font-bold">
+              <span class="px-2 py-0.5 rounded-md bg-surface-container-high text-on-surface text-[11px] font-mono">
+                ${item.comprobante || 'S/C'}
+              </span>
+            </td>
+
+            <!-- Concepto / Descripción y Notas -->
+            <td class="py-3 px-4">
+              <span class="font-bold text-on-surface block text-xs">${item.concepto}</span>
+              ${item.notas ? `<span class="text-[10px] text-outline block mt-0.5 truncate max-w-xs">${item.notas}</span>` : ''}
+            </td>
+
+            <!-- Categoría -->
+            <td class="py-3 px-3 whitespace-nowrap">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${catObj.badgeClass}">
+                <span>${catObj.emoji}</span>
+                <span>${catObj.nombre}</span>
+              </span>
+            </td>
+
+            <!-- Capítulo Presupuestal -->
+            <td class="py-3 px-3 whitespace-nowrap text-xs text-on-surface-variant font-medium">
+              ${item.capitulo || 'General'}
+            </td>
+
+            <!-- Proveedor / Beneficiario -->
+            <td class="py-3 px-3 whitespace-nowrap text-xs text-on-surface font-semibold">
+              ${item.proveedor || '-'}
+            </td>
+
+            <!-- Cantidad & Unidad -->
+            <td class="py-3 px-3 text-center whitespace-nowrap font-mono text-xs">
+              <strong class="text-on-surface">${cant}</strong> <span class="text-outline text-[11px]">${item.unidad || ''}</span>
+            </td>
+
+            <!-- Precio Unitario -->
+            <td class="py-3 px-3 text-right font-mono text-xs text-on-surface-variant whitespace-nowrap">
+              ${formatCOP(pu)}
+            </td>
+
+            <!-- Total Pagado -->
+            <td class="py-3 px-4 text-right font-bold text-primary font-mono text-xs whitespace-nowrap">
+              ${formatCOP(tot)}
+            </td>
+
+            <!-- Medio de Pago -->
+            <td class="py-3 px-3 whitespace-nowrap text-[11px] text-on-surface-variant">
+              <span class="px-2 py-0.5 rounded-md bg-surface-container-low border border-outline-variant/40 text-[10px]">
+                ${item.medioPago || 'Efectivo'}
+              </span>
+            </td>
+
+            <!-- Acciones -->
+            <td class="py-3 px-3 text-center whitespace-nowrap">
+              <button onclick="editExpense('${item.id}')" class="w-7 h-7 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface inline-flex items-center justify-center transition-colors" title="Editar este gasto">
+                <span class="material-symbols-outlined text-[15px]">edit</span>
+              </button>
+              <button onclick="deleteExpense('${item.id}')" class="w-7 h-7 rounded-full hover:bg-error-container text-outline hover:text-error inline-flex items-center justify-center transition-colors" title="Eliminar este gasto">
+                <span class="material-symbols-outlined text-[15px]">delete</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      container.innerHTML = `
+        <table class="w-full text-left table-calc">
+          <thead class="bg-surface-container/60 text-on-surface-variant border-b border-surface-container-high">
+            <tr>
+              <th class="py-2.5 px-4">Fecha</th>
+              <th class="py-2.5 px-3">Comprobante</th>
+              <th class="py-2.5 px-4">Concepto / Detalle</th>
+              <th class="py-2.5 px-3">Categoría</th>
+              <th class="py-2.5 px-3">Capítulo</th>
+              <th class="py-2.5 px-3">Proveedor / Beneficiario</th>
+              <th class="py-2.5 px-3 text-center">Cant. / Unidad</th>
+              <th class="py-2.5 px-3 text-right">Valor Unitario</th>
+              <th class="py-2.5 px-4 text-right">Total Pagado</th>
+              <th class="py-2.5 px-3">Forma de Pago</th>
+              <th class="py-2.5 px-3 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+          <tfoot class="bg-surface-container-low/80 font-bold text-xs border-t border-surface-container-high">
+            <tr>
+              <td colspan="8" class="py-3 px-4 text-right uppercase tracking-wider text-[11px] text-on-surface-variant">
+                Total Filtrado en Bitácora (${filtered.length} ítems):
+              </td>
+              <td class="py-3 px-4 text-right text-primary font-mono text-sm">
+                ${formatCOP(subtotal)}
+              </td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+    }
+
+    function clearExpenseFilters() {
+      activeExpenseCategoryFilter = "todos";
+      activeExpenseChapterFilter = "todos";
+      expenseSearchQuery = "";
+      const inputSearch = document.getElementById('expense-search-input');
+      const selectChap = document.getElementById('expense-chapter-filter');
+      if (inputSearch) inputSearch.value = "";
+      if (selectChap) selectChap.value = "todos";
+      renderExpenseCategoryFilters();
+      renderExpensesTable();
+    }
+
+    // Modal de Agregar / Editar Gasto
+    function openExpenseModal(expenseId = null) {
+      editingExpenseId = expenseId;
+      const modal = document.getElementById('modal-gasto');
+      if (!modal) return;
+
+      populateExpenseChapterDropdown();
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      if (expenseId) {
+        const item = appExpenses.find(e => e.id === expenseId);
+        if (item) {
+          document.getElementById('modal-gasto-title').textContent = "Editar Gasto de Obra";
+          document.getElementById('gasto-fecha').value = item.fecha || "";
+          document.getElementById('gasto-categoria').value = item.categoria || "materiales";
+          document.getElementById('gasto-concepto').value = item.concepto || "";
+          document.getElementById('gasto-capitulo').value = item.capitulo || "";
+          document.getElementById('gasto-proveedor').value = item.proveedor || "";
+          document.getElementById('gasto-comprobante').value = item.comprobante || "";
+          document.getElementById('gasto-medio-pago').value = item.medioPago || "Transferencia Bancolombia";
+          document.getElementById('gasto-cantidad').value = item.cantidad || 1;
+          document.getElementById('gasto-unidad').value = item.unidad || "global";
+          document.getElementById('gasto-precio-unitario').value = item.precioUnitario || "";
+          document.getElementById('gasto-total').value = item.total || 0;
+          document.getElementById('gasto-notas').value = item.notas || "";
+        }
+      } else {
+        document.getElementById('modal-gasto-title').textContent = "Registrar Gasto de Obra";
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('gasto-fecha').value = todayStr;
+        document.getElementById('gasto-categoria').value = (activeExpenseCategoryFilter !== 'todos') ? activeExpenseCategoryFilter : "materiales";
+        document.getElementById('gasto-concepto').value = "";
+        
+        if (activeExpenseChapterFilter !== 'todos') {
+          document.getElementById('gasto-capitulo').value = activeExpenseChapterFilter;
+        } else {
+          document.getElementById('gasto-capitulo').selectedIndex = 0;
+        }
+
+        document.getElementById('gasto-proveedor').value = "";
+        document.getElementById('gasto-comprobante').value = "FAC-" + Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('gasto-medio-pago').value = "Transferencia Bancolombia";
+        document.getElementById('gasto-cantidad').value = 1;
+        document.getElementById('gasto-unidad').value = "bultos";
+        document.getElementById('gasto-precio-unitario').value = "";
+        document.getElementById('gasto-total').value = 0;
+        document.getElementById('gasto-notas').value = "";
+      }
+
+      calculateModalExpensePreview();
+    }
+
+    function calculateModalExpensePreview() {
+      const cant = parseFloat(document.getElementById('gasto-cantidad').value) || 0;
+      const pu = parseFloat(document.getElementById('gasto-precio-unitario').value) || 0;
+      const tot = cant * pu;
+
+      document.getElementById('gasto-total').value = tot;
+      document.getElementById('expense-preview-formula').textContent = `${cant} × ${formatCOP(pu)} = ${formatCOP(tot)}`;
+      document.getElementById('expense-preview-total').textContent = `${formatCOP(tot)} COP`;
+    }
+
+    function handleSaveExpense(event) {
+      event.preventDefault();
+
+      const fecha = document.getElementById('gasto-fecha').value;
+      const categoria = document.getElementById('gasto-categoria').value;
+      const concepto = document.getElementById('gasto-concepto').value.trim();
+      const capitulo = document.getElementById('gasto-capitulo').value;
+      const proveedor = document.getElementById('gasto-proveedor').value.trim();
+      const comprobante = document.getElementById('gasto-comprobante').value.trim();
+      const medioPago = document.getElementById('gasto-medio-pago').value;
+      const cantidad = parseFloat(document.getElementById('gasto-cantidad').value) || 1;
+      const unidad = document.getElementById('gasto-unidad').value.trim() || 'global';
+      const precioUnitario = parseFloat(document.getElementById('gasto-precio-unitario').value) || 0;
+      const total = parseFloat(document.getElementById('gasto-total').value) || (cantidad * precioUnitario);
+      const notas = document.getElementById('gasto-notas').value.trim();
+
+      if (editingExpenseId) {
+        const item = appExpenses.find(e => e.id === editingExpenseId);
+        if (item) {
+          item.fecha = fecha;
+          item.categoria = categoria;
+          item.concepto = concepto;
+          item.capitulo = capitulo;
+          item.proveedor = proveedor;
+          item.comprobante = comprobante;
+          item.medioPago = medioPago;
+          item.cantidad = cantidad;
+          item.unidad = unidad;
+          item.precioUnitario = precioUnitario;
+          item.total = total;
+          item.notas = notas;
+        }
+      } else {
+        const newExpense = {
+          id: "gasto-" + Date.now(),
+          fecha,
+          categoria,
+          concepto,
+          capitulo,
+          proveedor,
+          comprobante,
+          medioPago,
+          cantidad,
+          unidad,
+          precioUnitario,
+          total,
+          notas
+        };
+        appExpenses.unshift(newExpense);
+      }
+
+      localStorage.setItem('obracontrol_expenses', JSON.stringify(appExpenses));
+      closeModal('modal-gasto');
+      renderExpensesView();
+      alert(`¡Gasto "${concepto}" guardado exitosamente en la bitácora!`);
+    }
+
+    function editExpense(id) {
+      openExpenseModal(id);
+    }
+
+    function deleteExpense(id) {
+      const item = appExpenses.find(e => e.id === id);
+      if (!item) return;
+
+      if (confirm(`¿Deseas eliminar el gasto "${item.concepto}" (${formatCOP(item.total)})?`)) {
+        appExpenses = appExpenses.filter(e => e.id !== id);
+        localStorage.setItem('obracontrol_expenses', JSON.stringify(appExpenses));
+        renderExpensesView();
+      }
+    }
+
+    // Exportar Bitácora a CSV compatible con Excel
+    function exportExpensesToCSV() {
+      let csv = "Fecha;Comprobante;Concepto;Categoría;Capítulo;Proveedor;Medio de Pago;Cantidad;Unidad;Valor Unitario ($ COP);Total Pagado ($ COP);Notas\n";
+
+      appExpenses.forEach(e => {
+        const cant = Number(e.cantidad) || 1;
+        const pu = Number(e.precioUnitario) || 0;
+        const tot = Number(e.total) || 0;
+
+        csv += `"${e.fecha}";"${e.comprobante}";"${e.concepto}";"${e.categoria}";"${e.capitulo}";"${e.proveedor}";"${e.medioPago}";${cant};"${e.unidad}";${pu};${tot};"${(e.notas || '').replace(/"/g, '""')}"\n`;
+      });
+
+      const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Bitacora_Gastos_Obra_${appProject.nombre.replace(/\s+/g, '_')}.csv`);
+      link.click();
+    }
+
+    // =========================================================================
+    // LÓGICA DE CONTROL DE AVANCE FÍSICO DE OBRA (FUNCIÓN 4)
+    // =========================================================================
+
+    function renderProgressView() {
+      renderProgressMetrics();
+      renderProgressStatusFilters();
+      populateProgressChapterDropdown();
+      renderProgressTable();
+    }
+
+    // Métricas de Avance Físico
+    function renderProgressMetrics() {
+      let totalPresupuesto = 0;
+      let totalEjecutadoFinanciero = 0;
+      let totalTerminadas = 0;
+      let totalEnProceso = 0;
+      let totalPendientes = 0;
+
+      appBudget.forEach(item => {
+        const veces = Number(item.veces) || 1;
+        const largo = Number(item.largo) || 0;
+        const ancho = Number(item.ancho) || 0;
+        const alto = Number(item.alto) || 0;
+        const desp = Number(item.desperdicio) || 0;
+        const pu = Number(item.precioUnitario) || 0;
+
+        const volBase = veces * largo * ancho * alto;
+        const volAjustado = volBase * (1 + (desp / 100));
+        const costoTotalItem = volAjustado * pu;
+        totalPresupuesto += costoTotalItem;
+
+        const prog = appProgress[item.id] || { ejecutado: 0, porcentaje: 0, estado: "pendiente" };
+        const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
+        const est = prog.estado || (pct >= 100 ? "terminada" : (pct > 0 ? "en_proceso" : "pendiente"));
+
+        totalEjecutadoFinanciero += (costoTotalItem * (pct / 100));
+
+        if (est === "terminada" || pct >= 100) {
+          totalTerminadas++;
+        } else if (est === "en_proceso" || pct > 0) {
+          totalEnProceso++;
+        } else {
+          totalPendientes++;
+        }
+      });
+
+      const ponderado = totalPresupuesto > 0 ? ((totalEjecutadoFinanciero / totalPresupuesto) * 100).toFixed(1) : "0.0";
+      const pctTerminadas = appBudget.length > 0 ? ((totalTerminadas / appBudget.length) * 100).toFixed(0) : "0";
+
+      const elPond = document.getElementById('stat-avance-ponderado');
+      const elBar = document.getElementById('stat-avance-global-bar');
+      const elFinLabel = document.getElementById('stat-avance-financiero-label');
+      const elTerm = document.getElementById('stat-avance-terminadas');
+      const elPctTerm = document.getElementById('stat-pct-terminadas');
+      const elProc = document.getElementById('stat-avance-en-proceso');
+      const elPend = document.getElementById('stat-avance-pendientes');
+      const elSummary = document.getElementById('progress-active-summary-label');
+
+      if (elPond) elPond.textContent = `${ponderado}%`;
+      if (elBar) elBar.style.width = `${Math.min(100, Math.max(0, parseFloat(ponderado)))}%`;
+      if (elFinLabel) elFinLabel.textContent = `Ejecutado: ${formatCOP(totalEjecutadoFinanciero)} de ${formatCOP(totalPresupuesto)}`;
+      if (elTerm) elTerm.textContent = `${totalTerminadas} / ${appBudget.length}`;
+      if (elPctTerm) elPctTerm.textContent = `${pctTerminadas}%`;
+      if (elProc) elProc.textContent = totalEnProceso;
+      if (elPend) elPend.textContent = totalPendientes;
+      if (elSummary) elSummary.textContent = `Avance Físico Global: ${ponderado}% · ${totalTerminadas} de ${appBudget.length} partidas recibidas`;
+    }
+
+    // Filtros por Estado de Avance
+    function renderProgressStatusFilters() {
+      const container = document.getElementById('progress-status-filter-bar');
+      if (!container) return;
+      container.innerHTML = "";
+
+      ESTADOS_AVANCE.forEach(st => {
+        let count = 0;
+        if (st.id === "todos") {
+          count = appBudget.length;
+        } else {
+          appBudget.forEach(i => {
+            const prog = appProgress[i.id] || { porcentaje: 0, estado: "pendiente" };
+            const est = prog.estado || (prog.porcentaje >= 100 ? "terminada" : (prog.porcentaje > 0 ? "en_proceso" : "pendiente"));
+            if (est === st.id) count++;
+          });
+        }
+
+        const isSelected = (activeProgressStatusFilter === st.id);
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all ${
+          isSelected
+            ? 'bg-primary text-on-primary shadow-sm'
+            : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+        }`;
+        btn.onclick = () => setProgressStatusFilter(st.id);
+
+        btn.innerHTML = `
+          <span>${st.emoji}</span>
+          <span>${st.nombre}</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-surface-container-high text-on-surface-variant'}">${count}</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function setProgressStatusFilter(status) {
+      activeProgressStatusFilter = status;
+      renderProgressStatusFilters();
+      renderProgressTable();
+    }
+
+    // Selector de Capítulos para Avance
+    function populateProgressChapterDropdown() {
+      const select = document.getElementById('progress-chapter-filter');
+      if (!select) return;
+      const current = select.value || "todos";
+      select.innerHTML = `<option value="todos">Todos los Capítulos (${appBudget.length})</option>`;
+      appChapters.forEach(cap => {
+        const count = appBudget.filter(i => i.capitulo === cap).length;
+        const opt = document.createElement('option');
+        opt.value = cap;
+        opt.textContent = `${cap} (${count})`;
+        select.appendChild(opt);
+      });
+      select.value = current;
+    }
+
+    function setProgressChapterFilter(chap) {
+      activeProgressChapterFilter = chap;
+      renderProgressTable();
+    }
+
+    function handleProgressSearch(query) {
+      progressSearchQuery = (query || "").trim().toLowerCase();
+      renderProgressTable();
+    }
+
+    // Renderizar Tabla de Avance Físico
+    function renderProgressTable() {
+      const container = document.getElementById('progress-table-container');
+      if (!container) return;
+
+      const filtered = appBudget.filter(item => {
+        const prog = appProgress[item.id] || { ejecutado: 0, porcentaje: 0, estado: "pendiente" };
+        const est = prog.estado || (prog.porcentaje >= 100 ? "terminada" : (prog.porcentaje > 0 ? "en_proceso" : "pendiente"));
+
+        const matchStatus = (activeProgressStatusFilter === "todos" || est === activeProgressStatusFilter);
+        const matchChap = (activeProgressChapterFilter === "todos" || item.capitulo === activeProgressChapterFilter);
+
+        let matchQuery = true;
+        if (progressSearchQuery) {
+          const searchable = `${item.elemento || ''} ${item.actividad || ''} ${item.material || ''} ${prog.notas || ''}`.toLowerCase();
+          matchQuery = searchable.includes(progressSearchQuery);
+        }
+
+        return matchStatus && matchChap && matchQuery;
+      });
+
+      // Calcular Subtotal Ejecutado Filtrado
+      let subtotalEjecutado = 0;
+      let subtotalPresupuestado = 0;
+
+      filtered.forEach(item => {
+        const v = Number(item.veces) || 1;
+        const l = Number(item.largo) || 0;
+        const an = Number(item.ancho) || 0;
+        const al = Number(item.alto) || 0;
+        const desp = Number(item.desperdicio) || 0;
+        const pu = Number(item.precioUnitario) || 0;
+
+        const vol = (v * l * an * al) * (1 + (desp / 100));
+        const costo = vol * pu;
+        subtotalPresupuestado += costo;
+
+        const prog = appProgress[item.id] || { porcentaje: 0 };
+        const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
+        subtotalEjecutado += (costo * (pct / 100));
+      });
+
+      const elSubtotal = document.getElementById('progress-table-executed-total');
+      const elCount = document.getElementById('progress-table-count');
+
+      if (elSubtotal) elSubtotal.textContent = formatCOP(subtotalEjecutado);
+      if (elCount) elCount.textContent = `Mostrando ${filtered.length} de ${appBudget.length} partida(s)`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 px-4 bg-surface-container-low/40">
+            <span class="material-symbols-outlined text-[42px] text-outline mb-2 block">insert_chart</span>
+            <h4 class="text-sm font-bold text-on-surface">No se encontraron partidas con este filtro</h4>
+            <p class="text-xs text-on-surface-variant mt-1 max-w-sm mx-auto">
+              Prueba cambiando el estado o el capítulo seleccionado en la barra de control.
+            </p>
+            <button onclick="clearProgressFilters()" class="mt-4 px-3.5 py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-xs font-semibold text-on-surface">
+              Restablecer Filtros
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      let rowsHtml = "";
+      filtered.forEach(item => {
+        const v = Number(item.veces) || 1;
+        const l = Number(item.largo) || 0;
+        const an = Number(item.ancho) || 0;
+        const al = Number(item.alto) || 0;
+        const desp = Number(item.desperdicio) || 0;
+        const pu = Number(item.precioUnitario) || 0;
+
+        const volProy = (v * l * an * al) * (1 + (desp / 100));
+        const costoProy = volProy * pu;
+
+        const prog = appProgress[item.id] || {
+          ejecutado: 0,
+          porcentaje: 0,
+          estado: "pendiente",
+          fecha: "-",
+          notas: "Sin observaciones registradas."
+        };
+
+        const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
+        const ejecutadoM3 = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (volProy * (pct / 100));
+        const est = prog.estado || (pct >= 100 ? "terminada" : (pct > 0 ? "en_proceso" : "pendiente"));
+
+        let badgeStatusHtml = "";
+        let barColor = "bg-primary";
+        if (est === "terminada") {
+          badgeStatusHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">🟢 Terminada</span>`;
+          barColor = "bg-emerald-600";
+        } else if (est === "en_proceso") {
+          badgeStatusHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">🟡 En proceso</span>`;
+          barColor = "bg-amber-600";
+        } else {
+          badgeStatusHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">⚪ Pendiente</span>`;
+          barColor = "bg-slate-400";
+        }
+
+        rowsHtml += `
+          <tr class="border-b border-surface-container-high/40 hover:bg-surface-container-low/40 transition-colors">
+            <!-- Elemento / Código -->
+            <td class="py-3 px-4 whitespace-nowrap font-bold text-primary">
+              <span class="px-2 py-0.5 rounded-md bg-secondary-container text-on-secondary-container text-[11px] font-mono">
+                ${item.elemento || 'Ítem'}
+              </span>
+            </td>
+
+            <!-- Actividad & Material -->
+            <td class="py-3 px-4">
+              <span class="font-bold text-on-surface block text-xs">${item.actividad}</span>
+              <span class="text-[10px] text-outline block truncate max-w-xs">${item.material || 'Material estándar'}</span>
+            </td>
+
+            <!-- Capítulo -->
+            <td class="py-3 px-3 whitespace-nowrap text-xs text-on-surface-variant font-medium">
+              ${item.capitulo}
+            </td>
+
+            <!-- Cantidad Proyectada -->
+            <td class="py-3 px-3 text-right font-mono text-xs font-semibold text-on-surface">
+              ${volProy.toFixed(2)} m³
+            </td>
+
+            <!-- Cantidad Ejecutada -->
+            <td class="py-3 px-3 text-right font-mono text-xs font-bold text-primary">
+              ${ejecutadoM3.toFixed(2)} m³
+            </td>
+
+            <!-- Barra de Avance y Porcentaje -->
+            <td class="py-3 px-4 whitespace-nowrap min-w-[140px]">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-surface-container-high rounded-full h-2 overflow-hidden">
+                  <div class="${barColor} h-2 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                </div>
+                <span class="text-xs font-mono font-bold text-on-surface w-9 text-right">${pct.toFixed(0)}%</span>
+              </div>
+            </td>
+
+            <!-- Estado Actual -->
+            <td class="py-3 px-3 whitespace-nowrap">
+              ${badgeStatusHtml}
+            </td>
+
+            <!-- Fecha Última Inspección -->
+            <td class="py-3 px-3 whitespace-nowrap font-mono text-xs text-outline">
+              ${prog.fecha || '-'}
+            </td>
+
+            <!-- Observaciones Técnicas -->
+            <td class="py-3 px-4 text-xs text-on-surface-variant max-w-[200px] truncate" title="${prog.notas || ''}">
+              ${prog.notas || '<span class="text-outline italic">Sin notas</span>'}
+            </td>
+
+            <!-- Acción: Actualizar -->
+            <td class="py-3 px-3 text-center whitespace-nowrap">
+              <button onclick="openProgressModal('${item.id}')" class="px-3 py-1.5 rounded-full bg-primary text-on-primary hover:opacity-95 text-xs font-semibold flex items-center gap-1 shadow-sm transition-transform active:scale-95" title="Actualizar cubicación y avance">
+                <span class="material-symbols-outlined text-[15px]">edit_note</span>
+                <span>Actualizar</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      container.innerHTML = `
+        <table class="w-full text-left table-calc">
+          <thead class="bg-surface-container/60 text-on-surface-variant border-b border-surface-container-high">
+            <tr>
+              <th class="py-2.5 px-4">Elemento</th>
+              <th class="py-2.5 px-4">Actividad / Partida</th>
+              <th class="py-2.5 px-3">Capítulo</th>
+              <th class="py-2.5 px-3 text-right">Proyectado</th>
+              <th class="py-2.5 px-3 text-right">Ejecutado</th>
+              <th class="py-2.5 px-4">% Avance Físico</th>
+              <th class="py-2.5 px-3">Estado</th>
+              <th class="py-2.5 px-3">Inspección</th>
+              <th class="py-2.5 px-4">Notas de Supervisión</th>
+              <th class="py-2.5 px-3 text-center">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+          <tfoot class="bg-surface-container-low/80 font-bold text-xs border-t border-surface-container-high">
+            <tr>
+              <td colspan="4" class="py-3 px-4 text-right uppercase tracking-wider text-[11px] text-on-surface-variant">
+                Total Partidas Filtradas (${filtered.length} ítems):
+              </td>
+              <td colspan="5" class="py-3 px-4 text-left font-mono text-xs text-secondary">
+                Presupuesto Filtrado: ${formatCOP(subtotalPresupuestado)} · Ejecutado: <strong>${formatCOP(subtotalEjecutado)}</strong>
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+    }
+
+    function clearProgressFilters() {
+      activeProgressStatusFilter = "todos";
+      activeProgressChapterFilter = "todos";
+      progressSearchQuery = "";
+      const searchInput = document.getElementById('progress-search-input');
+      const chapterSelect = document.getElementById('progress-chapter-filter');
+      if (searchInput) searchInput.value = "";
+      if (chapterSelect) chapterSelect.value = "todos";
+      renderProgressStatusFilters();
+      renderProgressTable();
+    }
+
+    // Modal de Actualizar Avance Físico
+    function openProgressModal(itemId) {
+      editingProgressItemId = itemId;
+      const modal = document.getElementById('modal-avance');
+      if (!modal) return;
+
+      const item = appBudget.find(i => i.id === itemId);
+      if (!item) return;
+
+      const v = Number(item.veces) || 1;
+      const l = Number(item.largo) || 0;
+      const an = Number(item.ancho) || 0;
+      const al = Number(item.alto) || 0;
+      const desp = Number(item.desperdicio) || 0;
+      const pu = Number(item.precioUnitario) || 0;
+
+      const volProy = (v * l * an * al) * (1 + (desp / 100));
+      const costoProy = volProy * pu;
+
+      const prog = appProgress[itemId] || {
+        ejecutado: 0,
+        porcentaje: 0,
+        estado: "pendiente",
+        fecha: new Date().toISOString().split('T')[0],
+        notas: ""
+      };
+
+      document.getElementById('modal-avance-elemento').textContent = item.elemento || "Ítem";
+      document.getElementById('modal-avance-actividad').textContent = item.actividad;
+      document.getElementById('modal-avance-capitulo').textContent = item.capitulo;
+      document.getElementById('modal-avance-proyectado').textContent = `${volProy.toFixed(2)} m³`;
+      document.getElementById('modal-avance-costo-total').textContent = formatCOP(costoProy);
+
+      document.getElementById('avance-item-id').value = itemId;
+      document.getElementById('avance-proyectado-val').value = volProy;
+      document.getElementById('avance-costo-val').value = costoProy;
+
+      document.getElementById('avance-fecha').value = prog.fecha && prog.fecha !== "-" ? prog.fecha : new Date().toISOString().split('T')[0];
+      
+      const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
+      const cantEjecutada = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (volProy * (pct / 100));
+
+      document.getElementById('avance-porcentaje').value = pct;
+      document.getElementById('avance-range').value = pct;
+      document.getElementById('avance-ejecutado').value = cantEjecutada.toFixed(2);
+      document.getElementById('avance-estado').value = prog.estado || (pct >= 100 ? "terminada" : (pct > 0 ? "en_proceso" : "pendiente"));
+      document.getElementById('avance-notas').value = prog.notas || "";
+
+      updateProgressModalPreview(volProy, costoProy, cantEjecutada, pct);
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function calculateProgressFromRange(val) {
+      const pct = parseFloat(val) || 0;
+      document.getElementById('avance-porcentaje').value = pct;
+      
+      const volProy = parseFloat(document.getElementById('avance-proyectado-val').value) || 0;
+      const costoProy = parseFloat(document.getElementById('avance-costo-val').value) || 0;
+      const ejecutado = volProy * (pct / 100);
+
+      document.getElementById('avance-ejecutado').value = ejecutado.toFixed(2);
+      autoSelectProgressStatus(pct);
+      updateProgressModalPreview(volProy, costoProy, ejecutado, pct);
+    }
+
+    function calculateProgressFromPercentage() {
+      let pct = parseFloat(document.getElementById('avance-porcentaje').value) || 0;
+      pct = Math.min(100, Math.max(0, pct));
+      document.getElementById('avance-range').value = pct;
+
+      const volProy = parseFloat(document.getElementById('avance-proyectado-val').value) || 0;
+      const costoProy = parseFloat(document.getElementById('avance-costo-val').value) || 0;
+      const ejecutado = volProy * (pct / 100);
+
+      document.getElementById('avance-ejecutado').value = ejecutado.toFixed(2);
+      autoSelectProgressStatus(pct);
+      updateProgressModalPreview(volProy, costoProy, ejecutado, pct);
+    }
+
+    function calculateProgressFromExecuted() {
+      const ejecutado = parseFloat(document.getElementById('avance-ejecutado').value) || 0;
+      const volProy = parseFloat(document.getElementById('avance-proyectado-val').value) || 0;
+      const costoProy = parseFloat(document.getElementById('avance-costo-val').value) || 0;
+
+      let pct = 0;
+      if (volProy > 0) {
+        pct = Math.min(100, Math.max(0, (ejecutado / volProy) * 100));
+      }
+
+      document.getElementById('avance-porcentaje').value = pct.toFixed(1);
+      document.getElementById('avance-range').value = Math.round(pct);
+      autoSelectProgressStatus(pct);
+      updateProgressModalPreview(volProy, costoProy, ejecutado, pct);
+    }
+
+    function setQuickProgress(pct) {
+      document.getElementById('avance-porcentaje').value = pct;
+      document.getElementById('avance-range').value = pct;
+
+      const volProy = parseFloat(document.getElementById('avance-proyectado-val').value) || 0;
+      const costoProy = parseFloat(document.getElementById('avance-costo-val').value) || 0;
+      const ejecutado = volProy * (pct / 100);
+
+      document.getElementById('avance-ejecutado').value = ejecutado.toFixed(2);
+      autoSelectProgressStatus(pct);
+      updateProgressModalPreview(volProy, costoProy, ejecutado, pct);
+    }
+
+    function autoSelectProgressStatus(pct) {
+      const select = document.getElementById('avance-estado');
+      if (!select) return;
+      if (pct >= 100) {
+        select.value = "terminada";
+      } else if (pct > 0) {
+        select.value = "en_proceso";
+      } else {
+        select.value = "pendiente";
+      }
+    }
+
+    function updateProgressModalPreview(volProy, costoProy, ejecutado, pct) {
+      const pendiente = Math.max(0, volProy - ejecutado);
+      const valorEjecutado = costoProy * (pct / 100);
+
+      document.getElementById('modal-avance-calc-pendiente').textContent = `${pendiente.toFixed(2)} m³`;
+      document.getElementById('modal-avance-calc-valor').textContent = `${formatCOP(valorEjecutado)} COP`;
+    }
+
+    function handleSaveProgress(event) {
+      event.preventDefault();
+
+      const itemId = document.getElementById('avance-item-id').value;
+      if (!itemId) return;
+
+      const fecha = document.getElementById('avance-fecha').value;
+      const estado = document.getElementById('avance-estado').value;
+      const ejecutado = parseFloat(document.getElementById('avance-ejecutado').value) || 0;
+      const porcentaje = parseFloat(document.getElementById('avance-porcentaje').value) || 0;
+      const notas = document.getElementById('avance-notas').value.trim();
+
+      appProgress[itemId] = {
+        ejecutado,
+        porcentaje,
+        estado,
+        fecha,
+        notas
+      };
+
+      localStorage.setItem('obracontrol_progress', JSON.stringify(appProgress));
+      closeModal('modal-avance');
+      renderProgressView();
+
+      const item = appBudget.find(i => i.id === itemId);
+      alert(`¡Avance de "${item ? item.elemento : 'la partida'}" actualizado al ${porcentaje.toFixed(0)}%!`);
+    }
+
+    // Exportar Acta de Avance a CSV
+    function exportProgressToCSV() {
+      let csv = "Elemento;Actividad;Capítulo;Material;Cubicación Proyectada (m³);Cubicación Ejecutada (m³);% Avance Físico;Estado;Fecha Última Inspección;Valor Presupuestado ($ COP);Valor Ejecutado ($ COP);Notas de Supervisión\n";
+
+      appBudget.forEach(i => {
+        const v = Number(i.veces) || 1;
+        const l = Number(i.largo) || 0;
+        const an = Number(i.ancho) || 0;
+        const al = Number(i.alto) || 0;
+        const desp = Number(i.desperdicio) || 0;
+        const pu = Number(i.precioUnitario) || 0;
+
+        const volProy = (v * l * an * al) * (1 + (desp / 100));
+        const costoProy = volProy * pu;
+
+        const prog = appProgress[i.id] || { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "-", notas: "" };
+        const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
+        const ejecutado = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (volProy * (pct / 100));
+        const costoEjecutado = costoProy * (pct / 100);
+
+        csv += `"${i.elemento}";"${i.actividad}";"${i.capitulo}";"${i.material}";${volProy.toFixed(2)};${ejecutado.toFixed(2)};${pct.toFixed(1)}%;"${prog.estado}";"${prog.fecha}";${costoProy.toFixed(0)};${costoEjecutado.toFixed(0)};"${(prog.notas || '').replace(/"/g, '""')}"\n`;
+      });
+
+      const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Acta_Avance_Fisico_${appProject.nombre.replace(/\s+/g, '_')}.csv`);
+      link.click();
+    }
+
+    // =========================================================================
+    // LÓGICA DEL PANEL RESUMEN EJECUTIVO Y CONTROL DE OBRA (FUNCIÓN 5)
+    // =========================================================================
+
+    function renderSummaryView() {
+      // 1. Totales Generales
+      let totalPresupuesto = 0;
+      let totalPresupuestoBase = 0;
+      let totalEjecutadoFinanciero = 0;
+
+      appBudget.forEach(item => {
+        const v = Number(item.veces) || 1;
+        const l = Number(item.largo) || 0;
+        const an = Number(item.ancho) || 0;
+        const al = Number(item.alto) || 0;
+        const desp = Number(item.desperdicio) || 0;
+        const pu = Number(item.precioUnitario) || 0;
+
+        const volBase = v * l * an * al;
+        const volAjustado = volBase * (1 + (desp / 100));
+        const costoTotal = volAjustado * pu;
+        totalPresupuesto += costoTotal;
+        totalPresupuestoBase += (volBase * pu);
+
+        const prog = appProgress[item.id] || { porcentaje: 0 };
+        const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
+        totalEjecutadoFinanciero += (costoTotal * (pct / 100));
+      });
+
+      let totalGastos = 0;
+      let totalMateriales = 0;
+      let totalManoObra = 0;
+      let totalEquipos = 0;
+      let totalTransporte = 0;
+      let totalOtros = 0;
+
+      appExpenses.forEach(exp => {
+        const val = Number(exp.total) || 0;
+        totalGastos += val;
+
+        if (exp.categoria === 'materiales') totalMateriales += val;
+        else if (exp.categoria === 'mano_obra') totalManoObra += val;
+        else if (exp.categoria === 'equipos') totalEquipos += val;
+        else if (exp.categoria === 'transporte') totalTransporte += val;
+        else totalOtros += val;
+      });
+
+      const totalSaldo = totalPresupuesto - totalGastos;
+      const pctGastado = totalPresupuesto > 0 ? ((totalGastos / totalPresupuesto) * 100) : 0;
+      const pctSaldo = totalPresupuesto > 0 ? ((totalSaldo / totalPresupuesto) * 100) : 0;
+      const ponderadoFisico = totalPresupuesto > 0 ? ((totalEjecutadoFinanciero / totalPresupuesto) * 100) : 0;
+
+      // Actualizar Tarjetas KPI
+      const elPresupuesto = document.getElementById('resumen-presupuesto-total');
+      const elPresDetalle = document.getElementById('resumen-presupuesto-detalle');
+      const elGastos = document.getElementById('resumen-gastos-total');
+      const elPctGastado = document.getElementById('resumen-pct-gastado');
+      const elSaldo = document.getElementById('resumen-saldo-total');
+      const elPctSaldo = document.getElementById('resumen-pct-saldo');
+      const elSaldoEstado = document.getElementById('resumen-saldo-estado');
+
+      if (elPresupuesto) elPresupuesto.textContent = formatCOP(totalPresupuesto);
+      if (elPresDetalle) elPresDetalle.textContent = `${appChapters.length} capítulos · ${appBudget.length} partidas proyectadas`;
+
+      if (elGastos) elGastos.textContent = formatCOP(totalGastos);
+      if (elPctGastado) elPctGastado.textContent = `${pctGastado.toFixed(1)}%`;
+
+      if (elSaldo) {
+        elSaldo.textContent = formatCOP(totalSaldo);
+        if (totalSaldo < 0) {
+          elSaldo.className = "text-xl sm:text-2xl font-bold text-error font-mono";
+        } else {
+          elSaldo.className = "text-xl sm:text-2xl font-bold text-primary font-mono";
+        }
+      }
+      if (elPctSaldo) {
+        elPctSaldo.textContent = `${pctSaldo.toFixed(1)}%`;
+        if (totalSaldo < 0) {
+          elPctSaldo.className = "px-1.5 py-0.2 rounded-full bg-error-container text-error font-bold";
+        } else {
+          elPctSaldo.className = "px-1.5 py-0.2 rounded-full bg-secondary-container text-primary font-bold";
+        }
+      }
+      if (elSaldoEstado) {
+        elSaldoEstado.textContent = totalSaldo >= 0 ? "Superávit disponible" : "Déficit / Sobrecosto";
+      }
+
+      // Salud y Eficiencia (Físico vs Gasto)
+      const elPctFis = document.getElementById('resumen-pct-fisico');
+      const elPctFin = document.getElementById('resumen-pct-financiero');
+      const elBarFis = document.getElementById('resumen-bar-fisico');
+      const elBarFin = document.getElementById('resumen-bar-financiero');
+      const elDesempeno = document.getElementById('resumen-desempeno-label');
+      const elSaludPill = document.getElementById('resumen-salud-pill');
+
+      if (elPctFis) elPctFis.textContent = `${ponderadoFisico.toFixed(1)}%`;
+      if (elPctFin) elPctFin.textContent = `${pctGastado.toFixed(1)}%`;
+      if (elBarFis) elBarFis.style.width = `${Math.min(100, ponderadoFisico)}%`;
+      if (elBarFin) elBarFin.style.width = `${Math.min(100, pctGastado)}%`;
+
+      if (elDesempeno && elSaludPill) {
+        if (totalSaldo < 0) {
+          elDesempeno.textContent = "Alerta crítica: Se ha superado el presupuesto total contratado.";
+          elDesempeno.className = "text-[10px] font-semibold text-error mt-1 truncate";
+          elSaludPill.textContent = "🔴 Sobrecosto General";
+          elSaludPill.className = "px-3 py-1 rounded-full text-xs font-bold bg-error-container text-error border border-error/40";
+        } else if (ponderadoFisico >= pctGastado) {
+          elDesempeno.textContent = "Excelente: El avance físico supera o iguala al gasto ejecutado.";
+          elDesempeno.className = "text-[10px] font-semibold text-emerald-800 mt-1 truncate";
+          elSaludPill.textContent = "🟢 Obra en Control y Eficiente";
+          elSaludPill.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300";
+        } else if (pctGastado - ponderadoFisico < 15) {
+          elDesempeno.textContent = "Atención: El gasto supera ligeramente al avance físico de obra.";
+          elDesempeno.className = "text-[10px] font-semibold text-amber-800 mt-1 truncate";
+          elSaludPill.textContent = "🟡 Desviación Moderada";
+          elSaludPill.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300";
+        } else {
+          elDesempeno.textContent = "Alerta de desface: El gasto acumulado supera fuertemente al avance físico.";
+          elDesempeno.className = "text-[10px] font-semibold text-error mt-1 truncate";
+          elSaludPill.textContent = "🔴 Desbalance Financiero";
+          elSaludPill.className = "px-3 py-1 rounded-full text-xs font-bold bg-error-container text-error border border-error/40";
+        }
+      }
+
+      renderSummaryResources(totalGastos, totalMateriales, totalManoObra, totalEquipos, totalTransporte, totalOtros);
+      renderSummaryAlerts(totalPresupuesto, totalGastos, totalSaldo, ponderadoFisico, pctGastado);
+      renderSummaryChapterTable();
+    }
+
+    // Desglose de Gastos por Tipo de Recurso
+    function renderSummaryResources(totalGastos, mat, mo, eq, tr, ot) {
+      const container = document.getElementById('resumen-recursos-container');
+      const elTotal = document.getElementById('resumen-distribucion-total');
+      if (elTotal) elTotal.textContent = `Total Egresos: ${formatCOP(totalGastos)}`;
+      if (!container) return;
+
+      const items = [
+        { nombre: "Materiales de Construcción", icono: "token", valor: mat, color: "bg-primary", textColor: "text-primary" },
+        { nombre: "Mano de Obra y Cuadrillas", icono: "engineering", valor: mo, color: "bg-secondary", textColor: "text-secondary" },
+        { nombre: "Equipos y Maquinaria", icono: "handyman", valor: eq, color: "bg-amber-600", textColor: "text-amber-700" },
+        { nombre: "Transporte y Acarreos", icono: "local_shipping", valor: tr, color: "bg-cyan-600", textColor: "text-cyan-700" },
+        { nombre: "Administrativo y Varios", icono: "pending_actions", valor: ot, color: "bg-purple-600", textColor: "text-purple-700" }
+      ];
+
+      let html = "";
+      items.forEach(item => {
+        const pct = totalGastos > 0 ? ((item.valor / totalGastos) * 100) : 0;
+        html += `
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[15px] ${item.textColor}">${item.icono}</span>
+                <span class="font-semibold text-on-surface">${item.nombre}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-on-surface">${formatCOP(item.valor)}</span>
+                <span class="font-mono text-[11px] text-outline w-10 text-right">${pct.toFixed(1)}%</span>
+              </div>
+            </div>
+            <div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+              <div class="${item.color} h-1.5 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Matriz de Alertas Inteligentes
+    function renderSummaryAlerts(pres, gastos, saldo, fis, fin) {
+      const container = document.getElementById('resumen-alertas-container');
+      if (!container) return;
+
+      const alertas = [];
+
+      // 1. Alerta de Cimentación
+      let presCim = 0;
+      appBudget.filter(i => i.capitulo.includes("Cimentación")).forEach(i => {
+        const vol = (i.veces * i.largo * i.ancho * i.alto) * (1 + (i.desperdicio / 100));
+        presCim += (vol * i.precioUnitario);
+      });
+      let gastoCim = 0;
+      appExpenses.filter(e => e.capitulo.includes("Cimentación")).forEach(e => gastoCim += Number(e.total) || 0);
+
+      if (gastoCim > presCim && presCim > 0) {
+        alertas.push({
+          tipo: "danger",
+          icono: "warning",
+          titulo: "Sobrecosto en Cimentación",
+          desc: `Se ha gastado ${formatCOP(gastoCim)} superando el presupuesto de ${formatCOP(presCim)}. Se sugiere auditar el desperdicio en zapatas.`
+        });
+      } else {
+        alertas.push({
+          tipo: "success",
+          icono: "check_circle",
+          titulo: "Cimentación en Control",
+          desc: `Cimentación con ${formatCOP(gastoCim)} gastados de ${formatCOP(presCim)} asignados. Margen favorable.`
+        });
+      }
+
+      // 2. Alerta de Liquidez y Flujo de Caja
+      const pctSaldo = pres > 0 ? (saldo / pres) * 100 : 0;
+      if (pctSaldo > 50) {
+        alertas.push({
+          tipo: "success",
+          icono: "savings",
+          titulo: "Excelente Flujo de Caja",
+          desc: `Dispones del ${pctSaldo.toFixed(0)}% del presupuesto libre (${formatCOP(saldo)}) para las etapas de estructura y mampostería.`
+        });
+      } else if (pctSaldo > 15) {
+        alertas.push({
+          tipo: "warning",
+          icono: "info",
+          titulo: "Flujo de Caja Estable",
+          desc: `Resta el ${pctSaldo.toFixed(0)}% del presupuesto. Programar compras de acero y formaleta con anticipación.`
+        });
+      } else {
+        alertas.push({
+          tipo: "danger",
+          icono: "error",
+          titulo: "Presupuesto Comprometido",
+          desc: `Solo resta el ${pctSaldo.toFixed(0)}% del presupuesto. Se requiere congelar partidas no esenciales.`
+        });
+      }
+
+      // 3. Alerta de Avance Físico vs Financiero
+      if (fis >= fin) {
+        alertas.push({
+          tipo: "success",
+          icono: "verified",
+          titulo: "Rendimiento Físico Óptimo",
+          desc: `El avance de obra (${fis.toFixed(1)}%) supera al porcentaje financiero desembolsado (${fin.toFixed(1)}%). Muy buen rendimiento.`
+        });
+      } else {
+        alertas.push({
+          tipo: "warning",
+          icono: "speed",
+          titulo: "Desviación en Cronograma",
+          desc: `Se ha pagado el ${fin.toFixed(1)}% pero el avance físico computado es del ${fis.toFixed(1)}%. Revisar tiempos de fraguado y rendimientos.`
+        });
+      }
+
+      // 4. Auditoría de Comprobantes
+      alertas.push({
+        tipo: "info",
+        icono: "fact_check",
+        titulo: "Bitácora de Soportes",
+        desc: `Se tienen ${appExpenses.length} comprobantes registrados y soportados para facturación y auditoría con clientes.`
+      });
+
+      let html = "";
+      alertas.forEach(a => {
+        let borderClass = "border-secondary-container bg-secondary-container/20";
+        let iconColor = "text-secondary";
+        if (a.tipo === "danger") {
+          borderClass = "border-error/40 bg-error-container/20";
+          iconColor = "text-error";
+        } else if (a.tipo === "warning") {
+          borderClass = "border-amber-300 bg-amber-50";
+          iconColor = "text-amber-800";
+        }
+
+        html += `
+          <div class="p-3.5 rounded-xl border ${borderClass} flex flex-col gap-1.5">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[17px] ${iconColor}">${a.icono}</span>
+              <strong class="font-bold text-on-surface text-xs">${a.titulo}</strong>
+            </div>
+            <p class="text-[11px] text-on-surface-variant leading-relaxed">
+              ${a.desc}
+            </p>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Tabla de Balance General por Capítulos
+    function renderSummaryChapterTable() {
+      const container = document.getElementById('resumen-table-container');
+      if (!container) return;
+
+      let totalPres = 0;
+      let totalGas = 0;
+      let totalSal = 0;
+
+      let rowsHtml = "";
+
+      appChapters.forEach(cap => {
+        // Presupuesto del capítulo
+        let presCap = 0;
+        let cantItemsCap = 0;
+        let sumPctFisico = 0;
+
+        appBudget.filter(i => i.capitulo === cap).forEach(i => {
+          cantItemsCap++;
+          const vol = (i.veces * i.largo * i.ancho * i.alto) * (1 + (i.desperdicio / 100));
+          const costo = vol * i.precioUnitario;
+          presCap += costo;
+
+          const prog = appProgress[i.id] || { porcentaje: 0 };
+          sumPctFisico += Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
+        });
+
+        // Gastos del capítulo
+        let gasCap = 0;
+        let countGastosCap = 0;
+        appExpenses.filter(e => e.capitulo === cap).forEach(e => {
+          countGastosCap++;
+          gasCap += Number(e.total) || 0;
+        });
+
+        const salCap = presCap - gasCap;
+        const pctUso = presCap > 0 ? (gasCap / presCap) * 100 : 0;
+        const avgFisico = cantItemsCap > 0 ? (sumPctFisico / cantItemsCap) : 0;
+
+        totalPres += presCap;
+        totalGas += gasCap;
+        totalSal += salCap;
+
+        // Semáforo de estado
+        let statusBadge = "";
+        let barColor = "bg-primary";
+        if (presCap === 0 && gasCap === 0) {
+          statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">⚪ Sin Iniciar</span>`;
+        } else if (gasCap > presCap) {
+          statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-error-container text-error border border-error/30">🔴 Sobrecosto</span>`;
+          barColor = "bg-error";
+        } else if (pctUso >= 90) {
+          statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">🟡 En Límite</span>`;
+          barColor = "bg-amber-600";
+        } else {
+          statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">🟢 En Presupuesto</span>`;
+          barColor = "bg-primary";
+        }
+
+        rowsHtml += `
+          <tr class="border-b border-surface-container-high/40 hover:bg-surface-container-low/40 transition-colors">
+            <!-- Capítulo -->
+            <td class="py-3 px-4 font-bold text-on-surface whitespace-nowrap">
+              ${cap}
+            </td>
+
+            <!-- Presupuesto Asignado -->
+            <td class="py-3 px-3 text-right font-mono text-xs text-on-surface whitespace-nowrap">
+              ${formatCOP(presCap)}
+            </td>
+
+            <!-- Gastos Reales Pagados -->
+            <td class="py-3 px-3 text-right font-mono text-xs font-bold text-amber-900 whitespace-nowrap">
+              ${formatCOP(gasCap)}
+            </td>
+
+            <!-- Saldo Disponible -->
+            <td class="py-3 px-3 text-right font-mono text-xs font-bold whitespace-nowrap ${salCap < 0 ? 'text-error' : 'text-primary'}">
+              ${formatCOP(salCap)}
+            </td>
+
+            <!-- Barra de Consumo Financiero -->
+            <td class="py-3 px-4 whitespace-nowrap min-w-[130px]">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-surface-container-high rounded-full h-2 overflow-hidden">
+                  <div class="${barColor} h-2 rounded-full transition-all duration-300" style="width: ${Math.min(100, pctUso)}%"></div>
+                </div>
+                <span class="text-xs font-mono font-bold text-on-surface w-9 text-right">${pctUso.toFixed(0)}%</span>
+              </div>
+            </td>
+
+            <!-- Avance Físico del Capítulo -->
+            <td class="py-3 px-3 text-center whitespace-nowrap font-mono text-xs font-bold text-secondary">
+              ${avgFisico.toFixed(0)}%
+            </td>
+
+            <!-- Semáforo de Estado -->
+            <td class="py-3 px-3 text-center whitespace-nowrap">
+              ${statusBadge}
+            </td>
+          </tr>
+        `;
+      });
+
+      const totalPctUso = totalPres > 0 ? (totalGas / totalPres) * 100 : 0;
+
+      container.innerHTML = `
+        <table class="w-full text-left table-calc">
+          <thead class="bg-surface-container/60 text-on-surface-variant border-b border-surface-container-high">
+            <tr>
+              <th class="py-2.5 px-4">Capítulo de Obra</th>
+              <th class="py-2.5 px-3 text-right">Presupuesto</th>
+              <th class="py-2.5 px-3 text-right">Gastos Pagados</th>
+              <th class="py-2.5 px-3 text-right">Saldo / Variación</th>
+              <th class="py-2.5 px-4">% Consumo</th>
+              <th class="py-2.5 px-3 text-center">% Avance Físico</th>
+              <th class="py-2.5 px-3 text-center">Diagnóstico</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+          <tfoot class="bg-surface-container-low/90 font-bold text-xs border-t-2 border-surface-container-high">
+            <tr>
+              <td class="py-3.5 px-4 uppercase tracking-wider text-on-surface">
+                Total General Consolidado:
+              </td>
+              <td class="py-3.5 px-3 text-right font-mono text-on-surface text-sm">
+                ${formatCOP(totalPres)}
+              </td>
+              <td class="py-3.5 px-3 text-right font-mono text-amber-900 text-sm">
+                ${formatCOP(totalGas)}
+              </td>
+              <td class="py-3.5 px-3 text-right font-mono text-sm ${totalSal < 0 ? 'text-error' : 'text-primary'}">
+                ${formatCOP(totalSal)}
+              </td>
+              <td class="py-3.5 px-4 text-center font-mono">
+                ${totalPctUso.toFixed(1)}% Consumido
+              </td>
+              <td colspan="2" class="py-3.5 px-3 text-center text-xs text-secondary">
+                Obra en supervisión activa
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+    }
+
+    // Exportar Balance General a CSV
+    function exportSummaryToCSV() {
+      let csv = "Capítulo de Obra;Presupuesto Asignado ($ COP);Gastos Reales Pagados ($ COP);Saldo Disponible ($ COP);% Consumido;% Avance Físico Promedio;Diagnóstico\n";
+
+      appChapters.forEach(cap => {
+        let presCap = 0;
+        let cantItemsCap = 0;
+        let sumPctFisico = 0;
+
+        appBudget.filter(i => i.capitulo === cap).forEach(i => {
+          cantItemsCap++;
+          const vol = (i.veces * i.largo * i.ancho * i.alto) * (1 + (i.desperdicio / 100));
+          presCap += (vol * i.precioUnitario);
+
+          const prog = appProgress[i.id] || { porcentaje: 0 };
+          sumPctFisico += Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
+        });
+
+        let gasCap = 0;
+        appExpenses.filter(e => e.capitulo === cap).forEach(e => {
+          gasCap += Number(e.total) || 0;
+        });
+
+        const salCap = presCap - gasCap;
+        const pctUso = presCap > 0 ? (gasCap / presCap) * 100 : 0;
+        const avgFisico = cantItemsCap > 0 ? (sumPctFisico / cantItemsCap) : 0;
+
+        let diag = "En Presupuesto";
+        if (gasCap > presCap) diag = "Sobrecosto";
+        else if (pctUso >= 90) diag = "En Límite";
+        else if (presCap === 0 && gasCap === 0) diag = "Sin Iniciar";
+
+        csv += `"${cap}";${presCap.toFixed(0)};${gasCap.toFixed(0)};${salCap.toFixed(0)};${pctUso.toFixed(1)}%;${avgFisico.toFixed(1)}%;"${diag}"\n`;
+      });
+
+      const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Balance_General_Obra_${appProject.nombre.replace(/\s+/g, '_')}.csv`);
+      link.click();
     }
 
     // Navegación entre Vistas
@@ -2163,6 +4536,41 @@
             Subir Plano
           </button>
         `;
+      } else if (tabName === 'gastos') {
+        featureLabel.textContent = '· Función 3: Bitácora de Gastos y Compras';
+        actionContainer.innerHTML = `
+          <button onclick="openExpenseModal()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-[0_8px_20px_-4px_rgba(22,51,40,0.3)] hover:opacity-95 transition-transform active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">add_circle</span>
+            + Registrar Gasto
+          </button>
+          <button onclick="exportExpensesToCSV()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container-lowest shadow-[0_4px_16px_rgba(28,35,33,0.05)] text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-all">
+            <span class="material-symbols-outlined text-[16px] text-secondary">file_download</span>
+            Exportar a Excel
+          </button>
+        `;
+        renderExpensesView();
+      } else if (tabName === 'avance') {
+        featureLabel.textContent = '· Función 4: Control de Avance Físico de Obra';
+        actionContainer.innerHTML = `
+          <button onclick="exportProgressToCSV()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container-lowest shadow-[0_4px_16px_rgba(28,35,33,0.05)] text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-all">
+            <span class="material-symbols-outlined text-[16px] text-secondary">file_download</span>
+            Descargar Acta (Excel)
+          </button>
+        `;
+        renderProgressView();
+      } else if (tabName === 'resumen') {
+        featureLabel.textContent = '· Función 5: Resumen Ejecutivo y Control de Obra';
+        actionContainer.innerHTML = `
+          <button onclick="window.print()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-surface-container-lowest shadow-[0_4px_16px_rgba(28,35,33,0.05)] text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-all">
+            <span class="material-symbols-outlined text-[16px] text-secondary">print</span>
+            Imprimir / PDF
+          </button>
+          <button onclick="exportSummaryToCSV()" class="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold shadow-[0_8px_20px_-4px_rgba(22,51,40,0.3)] hover:opacity-95 transition-transform active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">file_download</span>
+            Exportar Balance (Excel)
+          </button>
+        `;
+        renderSummaryView();
       }
 
       document.querySelectorAll('#desktop-nav .nav-btn').forEach(btn => {
@@ -2180,6 +4588,12 @@
           btn.className = "mobile-nav-btn flex flex-col items-center gap-0.5 text-on-surface-variant";
         }
       });
+
+      try {
+        if (window.location.hash !== '#' + tabName) {
+          history.replaceState(null, null, '#' + tabName);
+        }
+      } catch (e) {}
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
