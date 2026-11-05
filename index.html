@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -1043,7 +1043,7 @@
           </div>
           <div>
             <h3 class="text-base font-bold text-on-surface" id="modal-apu-title">Nuevo Ítem / Medición de Obra</h3>
-            <p class="text-xs text-on-surface-variant">Largo × Ancho × Alto = Volumen × Precio Unitario</p>
+            <p class="text-xs text-on-surface-variant" id="modal-apu-subtitle">Cálculo de cantidades según la unidad de medida seleccionada</p>
           </div>
         </div>
         <button onclick="closeModal('modal-apu')" class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center">
@@ -1070,41 +1070,77 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="font-bold text-on-surface mb-1 block">Actividad / Partida *</label>
-            <input type="text" id="apu-actividad" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium" placeholder="Ej. Zapatas en Concreto 3000 PSI / Vigas" />
+            <input type="text" id="apu-actividad" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-medium" placeholder="Ej. Zapatas / Muro / Tubería / Puerta" />
           </div>
           <div>
             <label class="font-bold text-on-surface mb-1 block">Identificador / Elemento *</label>
-            <input type="text" id="apu-elemento" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-primary font-bold" placeholder="Ej. Z-1, Z-2, V-101, C-1..." />
+            <input type="text" id="apu-elemento" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-primary font-bold" placeholder="Ej. Z-1, M-01, P-01, TU-01..." />
           </div>
         </div>
 
         <!-- Descripción / Material -->
         <div>
           <label class="font-bold text-on-surface mb-1 block">Material / Especificación Técnica</label>
-          <input type="text" id="apu-material" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface" placeholder="Ej. Concreto premezclado 3000 PSI + Acero 60ksi" />
+          <input type="text" id="apu-material" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface" placeholder="Ej. Concreto 3000 PSI / Bloque arcilla N°4 / Tubería PVC / etc." />
         </div>
 
-        <!-- CASILLAS DE MEDIDAS GEOMÉTRICAS: VECES, LARGO, ANCHO, ALTO -->
-        <div class="p-3 bg-surface-container-low rounded-xl border border-surface-container-high">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-secondary block mb-2">
-            Memoria de Cálculo de Volumen
-          </span>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div>
-              <label class="font-semibold text-on-surface mb-1 block text-[11px]">N° Veces (Cant) *</label>
-              <input type="number" step="1" min="1" id="apu-veces" required oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1" value="1" />
+        <!-- SELECCIÓN DE UNIDAD DE MEDIDA (AMPLIACIÓN COMPLETA SEGÚN FALLA 3) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Unidad de Medida *</label>
+            <select id="apu-unidad" required onchange="handleModalApuUnitChange()" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold">
+              <option value="m³">m³ · Metro Cúbico (Volumen: Concretos, excavación, rellenos)</option>
+              <option value="m²">m² · Metro Cuadrado (Área: Mampostería, pañetes, pisos, pintura, cubiertas)</option>
+              <option value="ml">ml · Metro Lineal (Longitud: Tuberías, vigas de amarre, guardescobas)</option>
+              <option value="und">und · Unidad / Pieza (Puertas, ventanas, sanitarios, luminarias)</option>
+              <option value="kg">kg · Kilogramo (Acero figurado, perfiles metálicos, alambre)</option>
+              <option value="glb">glb · Global (Preliminares, campamento, cerramientos, aseo)</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-on-surface mb-1 block">Modo de Ingreso</label>
+            <select id="apu-modo-calculo" onchange="handleModalApuModeChange()" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-semibold">
+              <option value="dimensiones">📐 Por Dimensiones / Memoria Geométrica</option>
+              <option value="directo">🔢 Cantidad Directa Manual</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CASILLAS DE MEDIDAS ADAPTABLES SEGÚN LA UNIDAD -->
+        <div class="p-3 bg-surface-container-low rounded-xl border border-surface-container-high" id="apu-dimensiones-box">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-secondary" id="apu-dimensiones-title">
+              Memoria de Cálculo de Cantidades
+            </span>
+            <span class="text-[10px] text-outline font-semibold" id="apu-dimensiones-hint">Largo × Ancho × Alto</span>
+          </div>
+
+          <!-- Campos de Dimensiones -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="apu-dimensiones-grid">
+            <div id="col-apu-veces">
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]" id="lbl-apu-veces">N° Veces *</label>
+              <input type="number" step="any" min="0.01" id="apu-veces" required oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1" value="1" />
             </div>
-            <div>
-              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Largo (m) *</label>
-              <input type="number" step="0.01" min="0.01" id="apu-largo" required oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1.20" />
+            <div id="col-apu-largo">
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]" id="lbl-apu-largo">Largo (m) *</label>
+              <input type="number" step="0.01" min="0" id="apu-largo" oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1.20" />
             </div>
-            <div>
-              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Ancho (m) *</label>
-              <input type="number" step="0.01" min="0.01" id="apu-ancho" required oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1.20" />
+            <div id="col-apu-ancho">
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]" id="lbl-apu-ancho">Ancho (m)</label>
+              <input type="number" step="0.01" min="0" id="apu-ancho" oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="1.20" />
             </div>
-            <div>
-              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Alto (m) *</label>
-              <input type="number" step="0.01" min="0.01" id="apu-alto" required oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="0.40" />
+            <div id="col-apu-alto">
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]" id="lbl-apu-alto">Alto / Espesor (m)</label>
+              <input type="number" step="0.01" min="0" id="apu-alto" oninput="calculateModalApuPreview()" class="w-full px-2.5 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold text-center" placeholder="0.40" />
+            </div>
+          </div>
+
+          <!-- Campo de Ingreso Directo (Opcional o para unidades und / glb) -->
+          <div id="col-apu-directo" class="hidden mt-2">
+            <label class="font-semibold text-on-surface mb-1 block text-[11px]">Cantidad Total Directa *</label>
+            <div class="relative">
+              <input type="number" step="any" min="0" id="apu-cantidad-directa" oninput="calculateModalApuPreview()" class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-primary font-bold text-center" placeholder="1.00" />
+              <span class="absolute right-3 top-2 text-xs font-bold text-outline" id="apu-directo-unit-label">m³</span>
             </div>
           </div>
         </div>
@@ -1112,7 +1148,7 @@
         <!-- Precio Unitario y Desperdicio -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="font-bold text-on-surface mb-1 block">Valor por Unidad ($ COP / m³) *</label>
+            <label class="font-bold text-on-surface mb-1 block" id="lbl-apu-precio">Valor por Unidad ($ COP / m³) *</label>
             <input type="number" step="1" min="0" id="apu-precio" required oninput="calculateModalApuPreview()" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface font-bold" placeholder="Ej. 650000" />
           </div>
           <div>
@@ -1127,15 +1163,15 @@
         <!-- TARJETA DE CÁLCULO EN VIVO -->
         <div class="p-3.5 bg-secondary-container/50 border border-secondary-container rounded-xl flex flex-col gap-1.5 mt-1">
           <div class="flex items-center justify-between text-xs">
-            <span class="text-on-secondary-container font-semibold">Fórmula de Volumen:</span>
+            <span class="text-on-secondary-container font-semibold">Fórmula de Cálculo:</span>
             <span class="font-mono text-primary font-bold" id="preview-formula">1 × 0.00 × 0.00 × 0.00 = 0.00 m³</span>
           </div>
           <div class="flex items-center justify-between text-xs">
-            <span class="text-on-secondary-container font-semibold">Volumen Final (+ Desperdicio):</span>
+            <span class="text-on-secondary-container font-semibold">Cantidad Total (+ Desperdicio):</span>
             <span class="font-bold text-primary" id="preview-volumen-ajustado">0.00 m³</span>
           </div>
           <div class="flex items-center justify-between text-xs pt-1.5 border-t border-secondary-container">
-            <span class="text-on-secondary-container font-bold">Costo Total (Volumen × Valor Unitario):</span>
+            <span class="text-on-secondary-container font-bold">Costo Total (Cantidad × Valor Unitario):</span>
             <span class="text-base font-bold text-primary" id="preview-costo-total">$0 COP</span>
           </div>
         </div>
@@ -1342,7 +1378,7 @@
         </h4>
         <div class="grid grid-cols-2 gap-2 pt-2 border-t border-surface-container-high text-xs">
           <div>
-            <span class="text-[10px] text-outline block uppercase font-bold">Cubicación Proyectada:</span>
+            <span class="text-[10px] text-outline block uppercase font-bold">Cantidad Proyectada:</span>
             <span class="font-bold text-primary font-mono text-sm" id="modal-avance-proyectado">0.00 m³</span>
           </div>
           <div class="text-right">
@@ -1381,8 +1417,10 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="font-semibold text-on-surface mb-1 block text-[11px]">Cantidad Ejecutada (m³) *</label>
-              <input type="number" step="0.01" min="0" id="avance-ejecutado" required oninput="calculateProgressFromExecuted()" class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-primary font-bold text-center text-sm font-mono" placeholder="0.00" />
+              <label class="font-semibold text-on-surface mb-1 block text-[11px]">
+                Cantidad Ejecutada (<span id="modal-avance-unit-lbl">m³</span>) *
+              </label>
+              <input type="number" step="any" min="0" id="avance-ejecutado" required oninput="calculateProgressFromExecuted()" class="w-full px-3 py-2 rounded-lg bg-surface-container-lowest border border-outline-variant/60 focus:outline-none focus:border-primary text-primary font-bold text-center text-sm font-mono" placeholder="0.00" />
             </div>
             <div>
               <label class="font-semibold text-on-surface mb-1 block text-[11px]">% Avance Físico *</label>
@@ -1426,7 +1464,7 @@
         <!-- Tarjeta de Cálculo en Vivo -->
         <div class="p-3 bg-secondary-container/50 border border-secondary-container rounded-xl flex flex-col gap-1.5">
           <div class="flex items-center justify-between text-xs">
-            <span class="text-on-secondary-container font-semibold">Cubicación Pendiente:</span>
+            <span class="text-on-secondary-container font-semibold">Cantidad Pendiente:</span>
             <span class="font-mono text-primary font-bold" id="modal-avance-calc-pendiente">0.00 m³</span>
           </div>
           <div class="flex items-center justify-between text-xs pt-1 border-t border-secondary-container">
@@ -1439,6 +1477,20 @@
         <div>
           <label class="font-semibold text-on-surface mb-1 block text-[11px]">Observaciones / Registro de Supervisión</label>
           <textarea id="avance-notas" rows="2" class="w-full px-3.5 py-2 rounded-lg bg-surface-container-low border border-outline-variant/60 focus:outline-none focus:border-primary text-on-surface" placeholder="Ej. Concreto vaciado y vibrado según norma NSR-10. Probetas rotuladas a 28 días."></textarea>
+        </div>
+
+        <!-- Historial Previo de Actualizaciones (Trazabilidad Falla 8) -->
+        <div class="p-3 bg-surface-container-low rounded-xl border border-surface-container-high flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-[15px]">history</span>
+              Historial de Actualizaciones Anteriores
+            </span>
+            <span class="text-[10px] text-outline font-semibold" id="modal-avance-historial-count">0 registros</span>
+          </div>
+          <div class="flex flex-col gap-1.5 max-h-36 overflow-y-auto" id="modal-avance-historial-list">
+            <!-- Se llena dinámicamente -->
+          </div>
         </div>
 
         <!-- Botones de Acción -->
@@ -1454,6 +1506,51 @@
 
       </form>
 
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: HISTORIAL DE ACTUALIZACIONES DE AVANCE FÍSICO (CORRECCIÓN FALLA 8)  -->
+  <!-- ========================================================================= -->
+  <div id="modal-historial-avance" class="fixed inset-0 z-50 bg-on-surface/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-surface-container-lowest rounded-2xl w-full max-w-lg p-6 shadow-2xl border border-surface-container-high/60 max-h-[90vh] overflow-y-auto flex flex-col gap-4">
+      <div class="flex items-center justify-between pb-3 border-b border-surface-container-high/60">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-secondary-container text-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">history</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-on-surface">Historial de Actualizaciones de Avance</h3>
+            <p class="text-xs text-on-surface-variant" id="modal-historial-subtitulo">Registro cronológico de inspecciones y avances</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-historial-avance')" class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="bg-surface-container-low rounded-xl p-3.5 flex flex-col gap-1 border border-surface-container-high">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-md bg-secondary-container text-on-secondary-container font-mono font-bold text-xs" id="modal-historial-codigo">Z-1</span>
+          <span class="text-xs font-semibold text-primary" id="modal-historial-capitulo">02. Cimentación</span>
+        </div>
+        <h4 class="text-sm font-bold text-on-surface mt-1" id="modal-historial-actividad">Zapatas en Concreto</h4>
+        <div class="flex items-center justify-between text-xs text-on-surface-variant pt-2 border-t border-surface-container-high mt-1">
+          <span>Proyectado: <strong class="text-on-surface font-mono" id="modal-historial-proyectado">0.00</strong></span>
+          <span>Actual: <strong class="text-primary font-mono" id="modal-historial-actual">0.00</strong> (<span id="modal-historial-pct">0%</span>)</span>
+        </div>
+      </div>
+
+      <!-- Timeline de Registros -->
+      <div class="flex flex-col gap-3" id="modal-historial-timeline">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <div class="pt-2 border-t border-surface-container-high/60 flex justify-end">
+        <button type="button" onclick="closeModal('modal-historial-avance')" class="px-5 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-semibold text-xs">
+          Cerrar
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1654,11 +1751,27 @@
       { id: "otros", nombre: "Administrativo y Varios", emoji: "📑", icono: "pending_actions", badgeClass: "bg-purple-100 text-purple-900" }
     ];
 
-    // Bitácora de Gastos y Compras Iniciales (Casa Valparaíso)
+    // ==========================================
+    // AYUDANTES DE FECHAS EN CALENDARIO LOCAL (FALLA 6)
+    // ==========================================
+    function getLocalDateString(dateObj = new Date()) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function getPastDateString(daysAgo = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() - daysAgo);
+      return getLocalDateString(d);
+    }
+
+    // Bitácora de Gastos y Compras Iniciales (Fechas acordes al calendario actual)
     const DEFAULT_EXPENSES = [
       {
         id: "gasto-01",
-        fecha: "2026-10-24",
+        fecha: getPastDateString(6),
         comprobante: "FAC-3912",
         concepto: "40 Bultos de Cemento Gris Argos Uso Estructural (50kg)",
         categoria: "materiales",
@@ -1673,7 +1786,7 @@
       },
       {
         id: "gasto-02",
-        fecha: "2026-10-25",
+        fecha: getPastDateString(5),
         comprobante: "REC-014",
         concepto: "Jornal Semanal Cuadrilla Cimentación (1 Oficial + 2 Ayudantes)",
         categoria: "mano_obra",
@@ -1688,7 +1801,7 @@
       },
       {
         id: "gasto-03",
-        fecha: "2026-10-26",
+        fecha: getPastDateString(3),
         comprobante: "FAC-8902",
         concepto: "Acero Figurado Varilla Corrugada 1/2\" W60 (35 Unidades)",
         categoria: "materiales",
@@ -1703,7 +1816,7 @@
       },
       {
         id: "gasto-04",
-        fecha: "2026-10-27",
+        fecha: getPastDateString(2),
         comprobante: "REC-108",
         concepto: "Viaje de Volqueta Arena Gruesa de Peña Lavada (6 m³)",
         categoria: "transporte",
@@ -1718,7 +1831,7 @@
       },
       {
         id: "gasto-05",
-        fecha: "2026-10-28",
+        fecha: getPastDateString(1),
         comprobante: "REM-2041",
         concepto: "Alquiler de Rana Compactadora y Formaleta Metálica",
         categoria: "equipos",
@@ -1733,15 +1846,46 @@
       }
     ];
 
-    // Partidas con Memorias de Medidas (Largo, Ancho, Alto, Volumen, Costo Total)
+    // Partidas Presupuestales con Unidades Ampliadas (m³, m², ml, und, kg, glb - Falla 3)
     const DEFAULT_BUDGET = [
       // 01. Preliminares
       {
         id: "item-101",
         capitulo: "01. Preliminares",
+        actividad: "Campamento y Cerramiento Provisional",
+        elemento: "CAM-01",
+        material: "Estructura en madera rolliza y lona verde 2.10m",
+        unidad: "glb",
+        veces: 1,
+        largo: 1,
+        ancho: 0,
+        alto: 0,
+        desperdicio: 0,
+        precioUnitario: 2500000,
+        icono: "home_work"
+      },
+      {
+        id: "item-102",
+        capitulo: "01. Preliminares",
+        actividad: "Localización y Replanteo con Nivel y Tránsito",
+        elemento: "LOC-01",
+        material: "Estacas de madera, alambre guía y pintura reflectiva",
+        unidad: "m²",
+        veces: 1,
+        largo: 13.0,
+        ancho: 10.0,
+        alto: 0,
+        desperdicio: 0,
+        precioUnitario: 12000,
+        icono: "straighten"
+      },
+      {
+        id: "item-103",
+        capitulo: "01. Preliminares",
         actividad: "Excavación Manual para Cimientos y Zapatas",
         elemento: "EX-01",
         material: "Excavación en tierra común a mano",
+        unidad: "m³",
         veces: 1,
         largo: 35.0,
         ancho: 0.80,
@@ -1757,6 +1901,7 @@
         actividad: "Zapatas Aisladas en Concreto 3000 PSI",
         elemento: "Z-1 (Esquineras)",
         material: "Concreto premezclado 3000 PSI + Acero 60ksi",
+        unidad: "m³",
         veces: 4,
         largo: 1.20,
         ancho: 1.20,
@@ -1771,6 +1916,7 @@
         actividad: "Zapatas Aisladas en Concreto 3000 PSI",
         elemento: "Z-2 (Intermedias)",
         material: "Concreto premezclado 3000 PSI + Acero 60ksi",
+        unidad: "m³",
         veces: 6,
         largo: 1.00,
         ancho: 1.00,
@@ -1785,6 +1931,7 @@
         actividad: "Zapatas Aisladas en Concreto 3000 PSI",
         elemento: "Z-3 (Medianeras)",
         material: "Concreto premezclado 3000 PSI + Acero 60ksi",
+        unidad: "m³",
         veces: 2,
         largo: 1.40,
         ancho: 1.40,
@@ -1796,55 +1943,44 @@
       {
         id: "item-204",
         capitulo: "02. Cimentación",
-        actividad: "Vigas de Amarre y Confinamiento Cimiento",
-        elemento: "VA-01 (Longitudinal)",
-        material: "Concreto 3000 PSI + Flejes 3/8\"",
+        actividad: "Vigas de Amarre y Confinamiento Cimiento (0.30x0.35)",
+        elemento: "VA-01 (Longitudinal y Transversal)",
+        material: "Concreto 3000 PSI + 4 varillas 1/2\" + Estribos 3/8\"",
+        unidad: "ml",
         veces: 1,
-        largo: 28.50,
+        largo: 46.70,
         ancho: 0.30,
-        alto: 0.30,
+        alto: 0.35,
         desperdicio: 5,
-        precioUnitario: 680000,
-        icono: "foundation"
-      },
-      {
-        id: "item-205",
-        capitulo: "02. Cimentación",
-        actividad: "Vigas de Amarre y Confinamiento Cimiento",
-        elemento: "VA-02 (Transversal)",
-        material: "Concreto 3000 PSI + Flejes 3/8\"",
-        veces: 1,
-        largo: 18.20,
-        ancho: 0.30,
-        alto: 0.30,
-        desperdicio: 5,
-        precioUnitario: 680000,
+        precioUnitario: 85000,
         icono: "foundation"
       },
       // 03. Estructura
       {
         id: "item-301",
         capitulo: "03. Estructura",
-        actividad: "Columnas de Confinamiento en Concreto",
-        elemento: "C-1 (Pórticos)",
-        material: "Concreto 3000 PSI + 4 varillas 1/2\"",
-        veces: 8,
-        largo: 0.30,
-        ancho: 0.30,
-        alto: 2.70,
+        actividad: "Acero de Refuerzo Figurado fy=420 MPa",
+        elemento: "AC-01",
+        material: "Acero corrugado grado 60 para zapatas y vigas",
+        unidad: "kg",
+        veces: 1,
+        largo: 1450,
+        ancho: 0,
+        alto: 0,
         desperdicio: 5,
-        precioUnitario: 720000,
-        icono: "domain"
+        precioUnitario: 6800,
+        icono: "reorder"
       },
       {
         id: "item-302",
         capitulo: "03. Estructura",
-        actividad: "Columnas de Confinamiento en Concreto",
-        elemento: "C-2 (Muros)",
-        material: "Concreto 3000 PSI + 4 varillas 3/8\"",
-        veces: 4,
-        largo: 0.25,
-        ancho: 0.25,
+        actividad: "Columnas de Confinamiento en Concreto (0.30x0.30)",
+        elemento: "C-1 (Pórticos Principales)",
+        material: "Concreto 3000 PSI + 4 varillas 1/2\"",
+        unidad: "m³",
+        veces: 8,
+        largo: 0.30,
+        ancho: 0.30,
         alto: 2.70,
         desperdicio: 5,
         precioUnitario: 720000,
@@ -1855,15 +1991,48 @@
         id: "item-401",
         capitulo: "04. Mampostería y Muros",
         actividad: "Muros en Bloque de Arcilla Cocida N°4",
-        elemento: "M-01 (Muros Interiores)",
+        elemento: "M-01 (Muros Perimetrales e Interiores)",
         material: "Bloque arcilla tolete + Pega mortero 1:4",
+        unidad: "m²",
         veces: 1,
         largo: 52.00,
-        ancho: 0.12,
-        alto: 2.60,
+        ancho: 2.60,
+        alto: 0,
         desperdicio: 8,
-        precioUnitario: 580000,
+        precioUnitario: 55000,
         icono: "layers"
+      },
+      // 05. Instalaciones
+      {
+        id: "item-501",
+        capitulo: "05. Instalaciones",
+        actividad: "Salidas Eléctricas e Iluminación LED Empotrada",
+        elemento: "ELE-01",
+        material: "Tubería Conduit 1/2\", cableado calibre 12 y cajas",
+        unidad: "und",
+        veces: 28,
+        largo: 0,
+        ancho: 0,
+        alto: 0,
+        desperdicio: 0,
+        precioUnitario: 72000,
+        icono: "bolt"
+      },
+      // 06. Acabados
+      {
+        id: "item-601",
+        capitulo: "06. Acabados",
+        actividad: "Estuco Plástico y Pintura Vinilo Tipo 1",
+        elemento: "AC-01 (Muros)",
+        material: "Estuco acrílico + Pintura lavable 3 manos",
+        unidad: "m²",
+        veces: 1,
+        largo: 40.00,
+        ancho: 2.50,
+        alto: 0,
+        desperdicio: 5,
+        precioUnitario: 14500,
+        icono: "format_paint"
       }
     ];
 
@@ -1880,7 +2049,7 @@
       estado: "En Ejecución"
     };
 
-    // Vector SVG de muestra
+    // Vector SVG Arquitectónico (Planta de Distribución de la Vivienda)
     const VECTOR_PLAN_HTML = `
       <div class="relative w-full max-w-[620px] transition-transform duration-200">
         <svg class="w-full h-auto text-on-surface drop-shadow-sm select-none" fill="none" viewBox="0 0 700 520" xmlns="http://www.w3.org/2000/svg">
@@ -1923,10 +2092,138 @@
       </div>
     `;
 
-    // Láminas de ejemplo
+    // Vector SVG Estructural / Cimentación (Diferente al arquitectónico - Falla 7)
+    const VECTOR_STRUCTURAL_HTML = `
+      <div class="relative w-full max-w-[620px] transition-transform duration-200">
+        <svg class="w-full h-auto text-on-surface drop-shadow-sm select-none" fill="none" viewBox="0 0 700 520" xmlns="http://www.w3.org/2000/svg">
+          <rect fill="#FFFFFF" height="460" opacity="0.8" rx="6" stroke="#436556" stroke-width="1.5" width="640" x="30" y="30"></rect>
+          <g opacity="0.12" stroke="#727974" stroke-width="0.5">
+            <line x1="30" y1="160" x2="670" y2="160"/>
+            <line x1="30" y1="300" x2="670" y2="300"/>
+            <line x1="30" y1="440" x2="670" y2="440"/>
+            <line x1="110" y1="30" x2="110" y2="490"/>
+            <line x1="360" y1="30" x2="360" y2="490"/>
+            <line x1="600" y1="30" x2="600" y2="490"/>
+          </g>
+
+          <!-- Título Técnico -->
+          <rect fill="#F5F4EF" height="42" stroke="#727974" stroke-width="1" width="370" x="50" y="45" rx="4"/>
+          <text fill="#163328" font-size="11" font-weight="700" x="65" y="65">PLANO E-01: PLANTA DE CIMENTACIÓN Y ZAPATAS</text>
+          <text fill="#436556" font-size="9" font-weight="600" x="65" y="78">ZAPATAS AISLADAS (Z-1, Z-2, Z-3) · VIGAS DE AMARRE VA-01 (0.30x0.35m)</text>
+
+          <!-- Notas NSR-10 -->
+          <rect fill="#FAF9F5" height="75" stroke="#C1C8C3" stroke-width="1" width="200" x="440" y="45" rx="4"/>
+          <text fill="#163328" font-size="9" font-weight="700" x="450" y="60">ESPECIFICACIONES NSR-10:</text>
+          <text fill="#424844" font-size="8" font-weight="500" x="450" y="74">• Concreto f'c = 21 MPa (3000 PSI)</text>
+          <text fill="#424844" font-size="8" font-weight="500" x="450" y="86">• Acero fy = 420 MPa (60 ksi)</text>
+          <text fill="#424844" font-size="8" font-weight="500" x="450" y="98">• Recubrimiento en suelo: 7.5 cm</text>
+          <text fill="#424844" font-size="8" font-weight="500" x="450" y="110">• Capacidad portante qt: 18.5 Ton/m²</text>
+
+          <!-- Ejes Estructurales -->
+          <line stroke="#ba1a1a" stroke-dasharray="6 3" stroke-width="1.2" x1="45" x2="655" y1="160" y2="160"/>
+          <circle cx="45" cy="160" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="42" y="164">1</text>
+          <circle cx="655" cy="160" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="652" y="164">1</text>
+
+          <line stroke="#ba1a1a" stroke-dasharray="6 3" stroke-width="1.2" x1="45" x2="655" y1="300" y2="300"/>
+          <circle cx="45" cy="300" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="42" y="304">2</text>
+          <circle cx="655" cy="300" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="652" y="304">2</text>
+
+          <line stroke="#ba1a1a" stroke-dasharray="6 3" stroke-width="1.2" x1="45" x2="655" y1="440" y2="440"/>
+          <circle cx="45" cy="440" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="42" y="444">3</text>
+          <circle cx="655" cy="440" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="652" y="444">3</text>
+
+          <line stroke="#ba1a1a" stroke-dasharray="6 3" stroke-width="1.2" x1="110" x2="110" y1="130" y2="475"/>
+          <circle cx="110" cy="130" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="106" y="134">A</text>
+          <circle cx="110" cy="475" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="106" y="479">A</text>
+
+          <line stroke="#ba1a1a" stroke-dasharray="6 3" stroke-width="1.2" x1="360" x2="360" y1="130" y2="475"/>
+          <circle cx="360" cy="130" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="356" y="134">B</text>
+          <circle cx="360" cy="475" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="356" y="479">B</text>
+
+          <line stroke="#ba1a1a" stroke-dasharray="6 3" stroke-width="1.2" x1="600" x2="600" y1="130" y2="475"/>
+          <circle cx="600" cy="130" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="596" y="134">C</text>
+          <circle cx="600" cy="475" r="11" fill="#FFFFFF" stroke="#ba1a1a" stroke-width="1.5"/>
+          <text fill="#ba1a1a" font-size="10" font-weight="800" x="596" y="479">C</text>
+
+          <!-- Vigas de Amarre VA-01 -->
+          <rect fill="#adcebe" stroke="#163328" stroke-width="2" height="16" width="490" x="110" y="152" rx="2"/>
+          <rect fill="#adcebe" stroke="#163328" stroke-width="2" height="16" width="490" x="110" y="292" rx="2"/>
+          <rect fill="#adcebe" stroke="#163328" stroke-width="2" height="16" width="490" x="110" y="432" rx="2"/>
+          <rect fill="#adcebe" stroke="#163328" stroke-width="2" height="280" width="16" x="102" y="160" rx="2"/>
+          <rect fill="#adcebe" stroke="#163328" stroke-width="2" height="280" width="16" x="352" y="160" rx="2"/>
+          <rect fill="#adcebe" stroke="#163328" stroke-width="2" height="280" width="16" x="592" y="160" rx="2"/>
+
+          <!-- Zapatas con códigos correspondientes a la tabla de presupuesto -->
+          <!-- A-1 -->
+          <rect fill="#c2e8d5" stroke="#163328" stroke-width="2.5" height="54" width="54" x="83" y="133" rx="3"/>
+          <rect fill="#163328" height="22" width="22" x="99" y="149"/>
+          <text fill="#163328" font-size="9" font-weight="800" x="90" y="126">Z-1 (1.20x1.20)</text>
+
+          <!-- B-1 -->
+          <rect fill="#c2e8d5" stroke="#163328" stroke-width="2.5" height="46" width="46" x="337" y="137" rx="3"/>
+          <rect fill="#163328" height="20" width="20" x="350" y="150"/>
+          <text fill="#163328" font-size="9" font-weight="800" x="340" y="126">Z-2 (1.00x1.00)</text>
+
+          <!-- C-1 -->
+          <rect fill="#c2e8d5" stroke="#163328" stroke-width="2.5" height="54" width="54" x="573" y="133" rx="3"/>
+          <rect fill="#163328" height="22" width="22" x="589" y="149"/>
+          <text fill="#163328" font-size="9" font-weight="800" x="580" y="126">Z-1 (1.20x1.20)</text>
+
+          <!-- A-2 -->
+          <rect fill="#c2e8d5" stroke="#163328" stroke-width="2.5" height="46" width="46" x="87" y="277" rx="3"/>
+          <rect fill="#163328" height="20" width="20" x="100" y="290"/>
+          <text fill="#163328" font-size="9" font-weight="800" x="90" y="270">Z-2 (1.00x1.00)</text>
+
+          <!-- B-2: Zapata Central Z-3 -->
+          <rect fill="#8ec3aa" stroke="#163328" stroke-width="3" height="64" width="64" x="328" y="268" rx="4"/>
+          <rect fill="#163328" height="24" width="24" x="348" y="288"/>
+          <text fill="#022016" font-size="10" font-weight="800" x="325" y="262">★ Z-3 (1.40x1.40)</text>
+
+          <!-- C-2 -->
+          <rect fill="#c2e8d5" stroke="#163328" stroke-width="2.5" height="46" width="46" x="577" y="277" rx="3"/>
+          <rect fill="#163328" height="20" width="20" x="590" y="290"/>
+          <text fill="#163328" font-size="9" font-weight="800" x="580" y="270">Z-2 (1.00x1.00)</text>
+
+          <!-- A-3 -->
+          <rect fill="#c2e8d5" stroke="#163328" stroke-width="2.5" height="54" width="54" x="83" y="413" rx="3"/>
+          <rect fill="#163328" height="22" width="22" x="99" y="429"/>
+          <text fill="#163328" font-size="9" font-weight="800" x="90" y="405">Z-1 (1.20x1.20)</text>
+
+          <!-- B-3 -->
+          <rect fill="#c2e8d5" stroke="#163328" stroke-width="2.5" height="46" width="46" x="337" y="417" rx="3"/>
+          <rect fill="#163328" height="20" width="20" x="350" y="430"/>
+          <text fill="#163328" font-size="9" font-weight="800" x="340" y="405">Z-2 (1.00x1.00)</text>
+
+          <!-- C-3 -->
+          <rect fill="#c2e8d5" stroke="#163328" stroke-width="2.5" height="54" width="54" x="573" y="413" rx="3"/>
+          <rect fill="#163328" height="22" width="22" x="589" y="429"/>
+          <text fill="#163328" font-size="9" font-weight="800" x="580" y="405">Z-1 (1.20x1.20)</text>
+
+          <!-- Norte -->
+          <g transform="translate(635, 75)">
+            <circle cx="0" cy="0" fill="#FFFFFF" r="16" stroke="#424844" stroke-width="1"></circle>
+            <path d="M0 -12L5 2H-5L0 -12Z" fill="#163328"></path>
+            <text fill="#163328" font-size="9" font-weight="700" x="-4" y="12">N</text>
+          </g>
+        </svg>
+      </div>
+    `;
+
+    // Láminas de ejemplo organizadas por especialidad
     const DEFAULT_SHEETS = [
       { id: "sheet-A01", categoria: "arquitectonico", codigo: "A-01", nombre: "A-01 Arquitectónico", subtitulo: "Planta Nivel 1 + Cuadro de Áreas", tipo: "vector", icono: "architecture", tamano: "Vectorial · 1:50", activo: true },
-      { id: "sheet-E01", categoria: "estructural", codigo: "E-01", nombre: "E-01 Cimentación", subtitulo: "Zapatas Z-1, Z-2 y Vigas", tipo: "vector", icono: "foundation", tamano: "Vectorial · 1:50", activo: false }
+      { id: "sheet-E01", categoria: "estructural", codigo: "E-01", nombre: "E-01 Cimentación", subtitulo: "Zapatas Z-1, Z-2, Z-3 y Vigas VA-01", tipo: "vector", icono: "foundation", tamano: "Vectorial · 1:50", activo: false }
     ];
 
     // Estados de Avance de Obra
@@ -1937,22 +2234,381 @@
       { id: "pendiente", nombre: "Pendientes", emoji: "⚪", badgeClass: "bg-slate-100 text-slate-800 border border-slate-300" }
     ];
 
-    // Registro Inicial de Avances Físicos por Partida (Casa Valparaíso)
+    // Registro Inicial de Avances Físicos con Trazabilidad e Historial (Falla 8)
     const DEFAULT_PROGRESS = {
-      "item-101": { ejecutado: 30.80, porcentaje: 100, estado: "terminada", fecha: "2026-10-25", notas: "Excavación manual completada al 100% y solados de limpieza vaciados." },
-      "item-201": { ejecutado: 2.42, porcentaje: 100, estado: "terminada", fecha: "2026-10-27", notas: "4 zapatas esquineras Z-1 armadas y fundidas con concreto 3000 PSI." },
-      "item-202": { ejecutado: 1.32, porcentaje: 60, estado: "en_proceso", fecha: "2026-10-28", notas: "4 de 6 zapatas intermedias Z-2 armadas; listas para vaciado." },
-      "item-203": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-28", notas: "Pendiente replanteo y armado de parrillas medianeras." },
-      "item-204": { ejecutado: 1.35, porcentaje: 50, estado: "en_proceso", fecha: "2026-10-29", notas: "Acero longitudinal colocado; formaleta en proceso en tramo norte." },
-      "item-205": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-29", notas: "Pendiente inicio de excavación y armado transversal." },
-      "item-301": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-29", notas: "Capítulo programado para iniciar tras desencofrado de cimientos." },
-      "item-302": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-29", notas: "Programado tras fundida de vigas de amarre." },
-      "item-401": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "2026-10-29", notas: "Programado tras estructura de pórticos." }
+      "item-101": {
+        ejecutado: 1,
+        porcentaje: 100,
+        estado: "terminada",
+        fecha: getPastDateString(14),
+        notas: "Campamento instalado con punto provisional de luz y agua.",
+        historial: [
+          { fecha: getPastDateString(20), ejecutado: 0.5, porcentaje: 50, estado: "en_proceso", notas: "Inicio de cerramiento perimetral.", registradoEn: new Date(Date.now() - 20*86400000).toISOString() },
+          { fecha: getPastDateString(14), ejecutado: 1, porcentaje: 100, estado: "terminada", notas: "Campamento instalado con punto provisional de luz y agua.", registradoEn: new Date(Date.now() - 14*86400000).toISOString() }
+        ]
+      },
+      "item-102": {
+        ejecutado: 130,
+        porcentaje: 100,
+        estado: "terminada",
+        fecha: getPastDateString(11),
+        notas: "Replanteo aprobado por interventoría con linderos amojonados.",
+        historial: [
+          { fecha: getPastDateString(13), ejecutado: 65, porcentaje: 50, estado: "en_proceso", notas: "Trazado de ejes A, B, C y puntos de referencia.", registradoEn: new Date(Date.now() - 13*86400000).toISOString() },
+          { fecha: getPastDateString(11), ejecutado: 130, porcentaje: 100, estado: "terminada", notas: "Replanteo aprobado por interventoría con linderos amojonados.", registradoEn: new Date(Date.now() - 11*86400000).toISOString() }
+        ]
+      },
+      "item-103": {
+        ejecutado: 30.80,
+        porcentaje: 100,
+        estado: "terminada",
+        fecha: getPastDateString(8),
+        notas: "Excavación manual completada al 100% y solados de limpieza vaciados.",
+        historial: [
+          { fecha: getPastDateString(12), ejecutado: 15.40, porcentaje: 50, estado: "en_proceso", notas: "Excavación de zanjas al 50%.", registradoEn: new Date(Date.now() - 12*86400000).toISOString() },
+          { fecha: getPastDateString(8), ejecutado: 30.80, porcentaje: 100, estado: "terminada", notas: "Excavación manual completada al 100% y solados de limpieza vaciados.", registradoEn: new Date(Date.now() - 8*86400000).toISOString() }
+        ]
+      },
+      "item-201": {
+        ejecutado: 2.42,
+        porcentaje: 100,
+        estado: "terminada",
+        fecha: getPastDateString(5),
+        notas: "4 zapatas esquineras Z-1 armadas y fundidas con concreto 3000 PSI.",
+        historial: [
+          { fecha: getPastDateString(8), ejecutado: 1.21, porcentaje: 50, estado: "en_proceso", notas: "Armado de parrillas y pedestales Z-1.", registradoEn: new Date(Date.now() - 8*86400000).toISOString() },
+          { fecha: getPastDateString(5), ejecutado: 2.42, porcentaje: 100, estado: "terminada", notas: "4 zapatas fundidas y probetas tomadas a compresión.", registradoEn: new Date(Date.now() - 5*86400000).toISOString() }
+        ]
+      },
+      "item-202": {
+        ejecutado: 1.32,
+        porcentaje: 60,
+        estado: "en_proceso",
+        fecha: getPastDateString(2),
+        notas: "4 de 6 zapatas intermedias Z-2 armadas; listas para vaciado.",
+        historial: [
+          { fecha: getPastDateString(5), ejecutado: 0.66, porcentaje: 30, estado: "en_proceso", notas: "Armado de 2 zapatas intermedias.", registradoEn: new Date(Date.now() - 5*86400000).toISOString() },
+          { fecha: getPastDateString(2), ejecutado: 1.32, porcentaje: 60, estado: "en_proceso", notas: "4 de 6 zapatas intermedias Z-2 armadas; listas para vaciado.", registradoEn: new Date(Date.now() - 2*86400000).toISOString() }
+        ]
+      },
+      "item-203": {
+        ejecutado: 0,
+        porcentaje: 0,
+        estado: "pendiente",
+        fecha: getPastDateString(2),
+        notas: "Pendiente replanteo y armado de parrillas medianeras.",
+        historial: []
+      },
+      "item-204": {
+        ejecutado: 23.35,
+        porcentaje: 50,
+        estado: "en_proceso",
+        fecha: getPastDateString(1),
+        notas: "Acero longitudinal colocado; formaleta en proceso en tramo norte.",
+        historial: [
+          { fecha: getPastDateString(3), ejecutado: 10.00, porcentaje: 21, estado: "en_proceso", notas: "Excavación de viga y colocación de solado.", registradoEn: new Date(Date.now() - 3*86400000).toISOString() },
+          { fecha: getPastDateString(1), ejecutado: 23.35, porcentaje: 50, estado: "en_proceso", notas: "Acero longitudinal colocado; formaleta en proceso en tramo norte.", registradoEn: new Date(Date.now() - 1*86400000).toISOString() }
+        ]
+      },
+      "item-301": {
+        ejecutado: 725,
+        porcentaje: 50,
+        estado: "en_proceso",
+        fecha: getPastDateString(2),
+        notas: "Figurado y corte de acero para cimientos y arranque de columnas.",
+        historial: [
+          { fecha: getPastDateString(2), ejecutado: 725, porcentaje: 50, estado: "en_proceso", notas: "Acero recibido y figurado para cimientos.", registradoEn: new Date(Date.now() - 2*86400000).toISOString() }
+        ]
+      },
+      "item-302": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: getPastDateString(1), notas: "Programado tras fundida de vigas de amarre.", historial: [] },
+      "item-401": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: getPastDateString(1), notas: "Programado tras estructura de pórticos.", historial: [] },
+      "item-501": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: getPastDateString(1), notas: "Entubado en losa y cimentación.", historial: [] },
+      "item-601": { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: getPastDateString(1), notas: "Fase de acabados finales.", historial: [] }
     };
 
     // ==========================================
-    // ESTADO GLOBAL
+    // ALMACENAMIENTO INDEXEDDB PARA PLANOS GRANDES (FALLAS 1 Y 2)
     // ==========================================
+    const DB_NAME = "ObraControlDB";
+    const DB_VERSION = 1;
+    const STORE_NAME = "plan_files";
+
+    function openDB() {
+      return new Promise((resolve) => {
+        if (!window.indexedDB) {
+          resolve(null);
+          return;
+        }
+        try {
+          const req = indexedDB.open(DB_NAME, DB_VERSION);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+              db.createObjectStore(STORE_NAME, { keyPath: "id" });
+            }
+          };
+          req.onsuccess = (e) => resolve(e.target.result);
+          req.onerror = (e) => {
+            console.warn("IndexedDB no disponible, usando memoria de sesión:", e.target.error);
+            resolve(null);
+          };
+        } catch (err) {
+          console.warn("Error abriendo IndexedDB:", err);
+          resolve(null);
+        }
+      });
+    }
+
+    async function saveFileToDB(id, dataUrl) {
+      inMemoryFiles[id] = dataUrl;
+      try {
+        const db = await openDB();
+        if (!db) return true;
+        return new Promise((resolve) => {
+          const tx = db.transaction(STORE_NAME, "readwrite");
+          const store = tx.objectStore(STORE_NAME);
+          store.put({ id, data: dataUrl });
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        });
+      } catch (err) {
+        console.warn("Error guardando archivo en IndexedDB:", err);
+        return false;
+      }
+    }
+
+    async function getFileFromDB(id) {
+      if (inMemoryFiles[id]) return inMemoryFiles[id];
+      try {
+        const db = await openDB();
+        if (!db) return null;
+        return new Promise((resolve) => {
+          const tx = db.transaction(STORE_NAME, "readonly");
+          const store = tx.objectStore(STORE_NAME);
+          const req = store.get(id);
+          req.onsuccess = () => {
+            const res = req.result ? req.result.data : null;
+            if (res) inMemoryFiles[id] = res;
+            resolve(res);
+          };
+          req.onerror = () => resolve(null);
+        });
+      } catch (err) {
+        console.warn("Error leyendo archivo de IndexedDB:", err);
+        return null;
+      }
+    }
+
+    async function deleteFileFromDB(id) {
+      delete inMemoryFiles[id];
+      try {
+        const db = await openDB();
+        if (!db) return true;
+        return new Promise((resolve) => {
+          const tx = db.transaction(STORE_NAME, "readwrite");
+          const store = tx.objectStore(STORE_NAME);
+          store.delete(id);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        });
+      } catch (err) {
+        console.warn("Error eliminando archivo de IndexedDB:", err);
+        return false;
+      }
+    }
+
+    // ==========================================
+    // SINCRONIZACIÓN PERSISTENTE ENTRE VENTANAS (FALLA 5 / MEJORA 1)
+    // ==========================================
+    function initStorage() {
+      if (!localStorage.getItem('obracontrol_project')) {
+        localStorage.setItem('obracontrol_project', JSON.stringify(DEFAULT_PROJECT));
+      }
+      if (!localStorage.getItem('obracontrol_sheets')) {
+        localStorage.setItem('obracontrol_sheets', JSON.stringify(DEFAULT_SHEETS));
+      }
+      if (!localStorage.getItem('obracontrol_chapters')) {
+        localStorage.setItem('obracontrol_chapters', JSON.stringify(DEFAULT_CHAPTERS));
+      }
+      if (!localStorage.getItem('obracontrol_budget_calc')) {
+        localStorage.setItem('obracontrol_budget_calc', JSON.stringify(DEFAULT_BUDGET));
+      }
+      if (!localStorage.getItem('obracontrol_expenses')) {
+        localStorage.setItem('obracontrol_expenses', JSON.stringify(DEFAULT_EXPENSES));
+      }
+      if (!localStorage.getItem('obracontrol_progress')) {
+        localStorage.setItem('obracontrol_progress', JSON.stringify(DEFAULT_PROGRESS));
+      }
+    }
+
+    function loadAllStateFromStorage() {
+      try {
+        const p = localStorage.getItem('obracontrol_project');
+        if (p) appProject = JSON.parse(p);
+
+        const s = localStorage.getItem('obracontrol_sheets');
+        if (s) appSheets = JSON.parse(s);
+
+        const c = localStorage.getItem('obracontrol_chapters');
+        if (c) appChapters = JSON.parse(c);
+
+        const b = localStorage.getItem('obracontrol_budget_calc');
+        if (b) appBudget = JSON.parse(b);
+
+        const e = localStorage.getItem('obracontrol_expenses');
+        if (e) appExpenses = JSON.parse(e);
+
+        const pr = localStorage.getItem('obracontrol_progress');
+        if (pr) appProgress = JSON.parse(pr);
+      } catch (err) {
+        console.error("Error cargando estado desde localStorage:", err);
+      }
+    }
+
+    const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('obracontrol_sync_channel') : null;
+
+    function syncBroadcast() {
+      if (syncChannel) {
+        try {
+          syncChannel.postMessage({ timestamp: Date.now() });
+        } catch (e) {}
+      }
+    }
+
+    if (syncChannel) {
+      syncChannel.onmessage = () => {
+        loadAllStateFromStorage();
+        renderAllViews();
+      };
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key && e.key.startsWith('obracontrol_')) {
+        loadAllStateFromStorage();
+        renderAllViews();
+      }
+    });
+
+    function renderAllViews() {
+      renderProjectInfo();
+      renderCategoryFilters();
+      renderSheetsList();
+      renderViewer();
+      renderBudgetView();
+      renderExpensesView();
+      renderProgressView();
+      renderSummaryView();
+    }
+
+    // ==========================================
+    // CÁLCULOS SEGÚN UNIDADES DE MEDIDA (FALLA 3)
+    // ==========================================
+    function calculateItemBaseQuantity(item) {
+      const u = (item.unidad || "m³").toLowerCase().trim();
+      const v = Number(item.veces) || 1;
+      const l = Number(item.largo) || 0;
+      const an = Number(item.ancho) || 0;
+      const al = Number(item.alto) || 0;
+      const manual = Number(item.cantidadManual);
+
+      if (!isNaN(manual) && manual > 0) return manual;
+
+      if (u === "m³" || u === "m3") {
+        return v * (l > 0 ? l : 1) * (an > 0 ? an : 1) * (al > 0 ? al : 1);
+      } else if (u === "m²" || u === "m2") {
+        const dim2 = an > 0 ? an : (al > 0 ? al : 1);
+        return v * (l > 0 ? l : 1) * dim2;
+      } else if (u === "ml" || u === "m") {
+        return v * (l > 0 ? l : 1);
+      } else if (u === "und" || u === "unidad" || u === "unidades") {
+        return v;
+      } else if (u === "kg" || u === "kilos") {
+        return v * (l > 0 ? l : 1);
+      } else if (u === "glb" || u === "global") {
+        return v;
+      }
+      return v * (l > 0 ? l : 1) * (an > 0 ? an : 1) * (al > 0 ? al : 1);
+    }
+
+    function calculateItemQuantity(item) {
+      const base = calculateItemBaseQuantity(item);
+      const desp = Number(item.desperdicio) || 0;
+      return base * (1 + (desp / 100));
+    }
+
+    function formatItemDimensions(item) {
+      const u = (item.unidad || "m³").toLowerCase().trim();
+      const v = Number(item.veces) || 1;
+      const l = Number(item.largo) || 0;
+      const an = Number(item.ancho) || 0;
+      const al = Number(item.alto) || 0;
+
+      if (item.cantidadManual) {
+        return `Manual: ${item.cantidadManual} ${item.unidad || ''}`;
+      }
+
+      if (u === "m³" || u === "m3") {
+        return `${v > 1 ? v + 'x ' : ''}${l.toFixed(2)} × ${an.toFixed(2)} × ${al.toFixed(2)} m`;
+      } else if (u === "m²" || u === "m2") {
+        const dim2 = an > 0 ? an : al;
+        return `${v > 1 ? v + 'x ' : ''}${l.toFixed(2)} × ${dim2.toFixed(2)} m`;
+      } else if (u === "ml" || u === "m") {
+        return `${v > 1 ? v + 'x ' : ''}${l.toFixed(2)} m`;
+      } else if (u === "und" || u === "unidad") {
+        return `${v} und`;
+      } else if (u === "kg") {
+        return l > 0 ? `${v} × ${l.toFixed(1)} kg` : `${v} kg`;
+      } else if (u === "glb" || u === "global") {
+        return `Global (${v})`;
+      }
+      return `${l.toFixed(2)} × ${an.toFixed(2)} × ${al.toFixed(2)}`;
+    }
+
+    function getUnitBadge(unidad) {
+      const u = (unidad || "m³").toLowerCase().trim();
+      if (u === "m³" || u === "m3") {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary-container text-on-secondary-container font-mono">m³</span>`;
+      } else if (u === "m²" || u === "m2") {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-200 font-mono">m²</span>`;
+      } else if (u === "ml" || u === "m") {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200 font-mono">ml</span>`;
+      } else if (u === "und" || u === "unidad") {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-200 font-mono">und</span>`;
+      } else if (u === "kg") {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-200 text-stone-800 border border-stone-300 font-mono">kg</span>`;
+      } else if (u === "glb" || u === "global") {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-200 font-mono">glb</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-surface-container-high text-on-surface font-mono">${unidad}</span>`;
+    }
+
+    // ==========================================
+    // NORMALIZACIÓN Y COINCIDENCIA DE CAPÍTULOS (FALLA 4)
+    // ==========================================
+    function normalizeChapterName(str) {
+      if (!str) return "";
+      return str
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/^(\d+[\.\-\s]+)+/, '')
+        .replace(/^cap(itulo)?\s*\d*[\.\-\s]*/i, '')
+        .trim();
+    }
+
+    function matchChapter(capA, capB) {
+      if (!capA || !capB) return false;
+      if (capA.trim().toLowerCase() === capB.trim().toLowerCase()) return true;
+      const normA = normalizeChapterName(capA);
+      const normB = normalizeChapterName(capB);
+      if (!normA || !normB) return false;
+      return normA === normB || normA.includes(normB) || normB.includes(normA);
+    }
+
+    // ==========================================
+    // INICIALIZACIÓN DE ESTADO GLOBAL
+    // ==========================================
+    initStorage();
+
     let appProject = JSON.parse(localStorage.getItem('obracontrol_project')) || DEFAULT_PROJECT;
     let appSheets = JSON.parse(localStorage.getItem('obracontrol_sheets')) || DEFAULT_SHEETS;
     let appChapters = JSON.parse(localStorage.getItem('obracontrol_chapters')) || DEFAULT_CHAPTERS;
@@ -2026,33 +2682,37 @@
     function renderBudgetMetrics() {
       let totalCostoObra = 0;
       let totalCostoBase = 0;
-      let totalVolumen = 0;
+      let totalVolumenM3 = 0;
 
       appBudget.forEach(item => {
-        const veces = Number(item.veces) || 1;
-        const largo = Number(item.largo) || 0;
-        const ancho = Number(item.ancho) || 0;
-        const alto = Number(item.alto) || 0;
-        const desp = Number(item.desperdicio) || 0;
+        const cantBase = calculateItemBaseQuantity(item);
+        const cantTotal = calculateItemQuantity(item);
         const pu = Number(item.precioUnitario) || 0;
 
-        const volBase = veces * largo * ancho * alto;
-        const volAjustado = volBase * (1 + (desp / 100));
-        const costo = volAjustado * pu;
-        const costoBase = volBase * pu;
+        const costo = cantTotal * pu;
+        const costoBase = cantBase * pu;
 
         totalCostoObra += costo;
         totalCostoBase += costoBase;
-        totalVolumen += volAjustado;
+
+        const u = (item.unidad || "m³").toLowerCase().trim();
+        if (u === "m³" || u === "m3") {
+          totalVolumenM3 += cantTotal;
+        }
       });
 
       const totalDesperdicioCosto = totalCostoObra - totalCostoBase;
       const promDesp = totalCostoBase > 0 ? ((totalDesperdicioCosto / totalCostoBase) * 100).toFixed(1) : "0.0";
 
-      document.getElementById('stat-presupuesto-total').textContent = formatCOP(totalCostoObra);
-      document.getElementById('stat-volumen-total').textContent = totalVolumen.toFixed(2);
-      document.getElementById('stat-costo-desperdicio').textContent = formatCOP(totalDesperdicioCosto);
-      document.getElementById('stat-desperdicio-promedio').textContent = `+${promDesp}% Prom.`;
+      const elPres = document.getElementById('stat-presupuesto-total');
+      const elVol = document.getElementById('stat-volumen-total');
+      const elDesp = document.getElementById('stat-costo-desperdicio');
+      const elProm = document.getElementById('stat-desperdicio-promedio');
+
+      if (elPres) elPres.textContent = formatCOP(totalCostoObra);
+      if (elVol) elVol.textContent = totalVolumenM3.toFixed(2);
+      if (elDesp) elDesp.textContent = formatCOP(totalDesperdicioCosto);
+      if (elProm) elProm.textContent = `+${promDesp}% Prom.`;
     }
 
     // Filtros por Capítulo
@@ -2071,7 +2731,7 @@
       container.appendChild(allBtn);
 
       appChapters.forEach(cap => {
-        const count = appBudget.filter(i => i.capitulo === cap).length;
+        const count = appBudget.filter(i => matchChapter(i.capitulo, cap)).length;
         const isSelected = (activeBudgetChapterFilter === cap);
         const btn = document.createElement('button');
         btn.className = `flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all ${
@@ -2101,29 +2761,22 @@
         : [activeBudgetChapterFilter];
 
       chaptersToRender.forEach(capTitle => {
-        const items = appBudget.filter(i => i.capitulo === capTitle);
-        if (activeBudgetChapterFilter !== "todos" && items.length === 0) {
-          // Mostrar mensaje de vacío
-        }
+        const items = appBudget.filter(i => matchChapter(i.capitulo, capTitle));
 
         // Subtotales del capítulo
-        let subtotalVolumen = 0;
         let subtotalCosto = 0;
+        let subtotalVolumen = 0;
 
         items.forEach(item => {
-          const v = Number(item.veces) || 1;
-          const l = Number(item.largo) || 0;
-          const an = Number(item.ancho) || 0;
-          const al = Number(item.alto) || 0;
-          const desp = Number(item.desperdicio) || 0;
+          const cantTotal = calculateItemQuantity(item);
           const pu = Number(item.precioUnitario) || 0;
-
-          const volBase = v * l * an * al;
-          const volAjustado = volBase * (1 + (desp / 100));
-          const costo = volAjustado * pu;
-
-          subtotalVolumen += volAjustado;
+          const costo = cantTotal * pu;
           subtotalCosto += costo;
+
+          const u = (item.unidad || "m³").toLowerCase().trim();
+          if (u === "m³" || u === "m3") {
+            subtotalVolumen += cantTotal;
+          }
         });
 
         // Contenedor del Capítulo
@@ -2144,10 +2797,12 @@
             </div>
 
             <div class="flex items-center gap-4">
-              <div class="text-right">
-                <span class="text-[10px] uppercase font-bold text-outline block">Volumen Capítulo</span>
-                <span class="text-xs font-bold text-secondary">${subtotalVolumen.toFixed(2)} m³</span>
-              </div>
+              ${subtotalVolumen > 0 ? `
+                <div class="text-right">
+                  <span class="text-[10px] uppercase font-bold text-outline block">Volumen Hormigón</span>
+                  <span class="text-xs font-bold text-secondary">${subtotalVolumen.toFixed(2)} m³</span>
+                </div>
+              ` : ''}
               <div class="text-right">
                 <span class="text-[10px] uppercase font-bold text-outline block">Subtotal Capítulo</span>
                 <span class="text-sm sm:text-base font-bold text-primary">${formatCOP(subtotalCosto)}</span>
@@ -2167,27 +2822,23 @@
         if (items.length === 0) {
           tableContainer.innerHTML = `
             <div class="text-center py-8 text-xs text-on-surface-variant">
-              No hay elementos registrados en ${capTitle}. Haz clic en <strong>+ Ítem</strong> para agregar zapatas, vigas o mediciones.
+              No hay elementos registrados en ${capTitle}. Haz clic en <strong>+ Ítem</strong> para agregar zapatas, pisos, muros o mediciones.
             </div>
           `;
         } else {
           let rowsHtml = "";
-          items.forEach((item, idx) => {
-            const v = Number(item.veces) || 1;
-            const l = Number(item.largo) || 0;
-            const an = Number(item.ancho) || 0;
-            const al = Number(item.alto) || 0;
+          items.forEach((item) => {
+            const cantBase = calculateItemBaseQuantity(item);
+            const cantTotal = calculateItemQuantity(item);
             const desp = Number(item.desperdicio) || 0;
             const pu = Number(item.precioUnitario) || 0;
-
-            const volBase = v * l * an * al;
-            const volAjustado = volBase * (1 + (desp / 100));
-            const costo = volAjustado * pu;
+            const costo = cantTotal * pu;
+            const unidadStr = item.unidad || 'm³';
 
             rowsHtml += `
               <tr class="border-b border-surface-container-high/40 hover:bg-surface-container-low/40 transition-colors">
                 <td class="py-3 px-4 font-bold text-primary whitespace-nowrap">
-                  <span class="px-2 py-0.5 rounded-md bg-secondary-container text-on-secondary-container text-[11px]">
+                  <span class="px-2 py-0.5 rounded-md bg-secondary-container text-on-secondary-container text-[11px] font-mono">
                     ${item.elemento || 'Ítem'}
                   </span>
                 </td>
@@ -2195,16 +2846,21 @@
                   <span class="font-semibold text-on-surface block text-xs">${item.actividad}</span>
                   <span class="text-[10px] text-outline block">${item.material || 'Material estándar'}</span>
                 </td>
-                <td class="py-3 px-3 text-center font-bold text-on-surface">${v}</td>
-                <td class="py-3 px-3 text-center font-mono">${l.toFixed(2)}</td>
-                <td class="py-3 px-3 text-center font-mono">${an.toFixed(2)}</td>
-                <td class="py-3 px-3 text-center font-mono">${al.toFixed(2)}</td>
-                <td class="py-3 px-4 text-right font-bold text-secondary font-mono">${volAjustado.toFixed(2)} m³</td>
+                <td class="py-3 px-3 text-center whitespace-nowrap">
+                  ${getUnitBadge(unidadStr)}
+                </td>
+                <td class="py-3 px-3 text-center text-xs font-mono text-on-surface-variant whitespace-nowrap">
+                  ${formatItemDimensions(item)}
+                </td>
+                <td class="py-3 px-3 text-center font-mono text-xs">${cantBase.toFixed(2)}</td>
                 <td class="py-3 px-3 text-center">
                   <span class="text-[11px] font-semibold text-outline">${desp}%</span>
                 </td>
-                <td class="py-3 px-4 text-right font-mono text-xs">${formatCOP(pu)}</td>
-                <td class="py-3 px-4 text-right font-bold text-primary font-mono text-xs">${formatCOP(costo)}</td>
+                <td class="py-3 px-4 text-right font-bold text-secondary font-mono text-xs whitespace-nowrap">
+                  ${cantTotal.toFixed(2)} <span class="text-[10px] text-outline font-normal">${unidadStr}</span>
+                </td>
+                <td class="py-3 px-4 text-right font-mono text-xs whitespace-nowrap">${formatCOP(pu)}</td>
+                <td class="py-3 px-4 text-right font-bold text-primary font-mono text-xs whitespace-nowrap">${formatCOP(costo)}</td>
                 <td class="py-3 px-3 text-center whitespace-nowrap">
                   <button onclick="editApu('${item.id}')" class="w-7 h-7 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface inline-flex items-center justify-center transition-colors" title="Editar">
                     <span class="material-symbols-outlined text-[15px]">edit</span>
@@ -2223,13 +2879,12 @@
                 <tr>
                   <th class="py-2.5 px-4">Ítem / Código</th>
                   <th class="py-2.5 px-4">Descripción / Material</th>
-                  <th class="py-2.5 px-3 text-center">N° Veces</th>
-                  <th class="py-2.5 px-3 text-center">Largo (m)</th>
-                  <th class="py-2.5 px-3 text-center">Ancho (m)</th>
-                  <th class="py-2.5 px-3 text-center">Alto (m)</th>
-                  <th class="py-2.5 px-4 text-right">Volumen (m³)</th>
+                  <th class="py-2.5 px-3 text-center">Unidad</th>
+                  <th class="py-2.5 px-3 text-center">Dimensiones / Medidas</th>
+                  <th class="py-2.5 px-3 text-center">Cant. Base</th>
                   <th class="py-2.5 px-3 text-center">Desp.</th>
-                  <th class="py-2.5 px-4 text-right">Valor / m³</th>
+                  <th class="py-2.5 px-4 text-right">Cant. Total</th>
+                  <th class="py-2.5 px-4 text-right">Valor Unitario</th>
                   <th class="py-2.5 px-4 text-right">Costo Total</th>
                   <th class="py-2.5 px-3 text-center">Acciones</th>
                 </tr>
@@ -2240,13 +2895,13 @@
               <tfoot class="bg-surface-container-low/80 font-bold text-xs border-t border-surface-container-high">
                 <tr>
                   <td colspan="6" class="py-3 px-4 text-right uppercase tracking-wider text-[11px] text-on-surface-variant">
-                    Total ${capTitle}:
+                    Total ${capTitle} (${items.length} ítems):
                   </td>
                   <td class="py-3 px-4 text-right text-secondary font-mono">
-                    ${subtotalVolumen.toFixed(2)} m³
+                    ${subtotalVolumen > 0 ? subtotalVolumen.toFixed(2) + ' m³' : '-'}
                   </td>
-                  <td colspan="2"></td>
-                  <td class="py-3 px-4 text-right text-primary font-mono text-sm">
+                  <td></td>
+                  <td class="py-3 px-4 text-right text-primary font-mono text-sm whitespace-nowrap">
                     ${formatCOP(subtotalCosto)}
                   </td>
                   <td></td>
@@ -2274,7 +2929,76 @@
       });
     }
 
-    // Modal para agregar o editar ítem
+        function handleModalApuUnitChange() {
+      const unidadSelect = document.getElementById('apu-unidad');
+      if (!unidadSelect) return;
+      const unidad = unidadSelect.value;
+      const modoSelect = document.getElementById('apu-modo-calculo');
+      const labelLargo = document.getElementById('lbl-apu-largo');
+      const labelAncho = document.getElementById('lbl-apu-ancho');
+      const labelAlto = document.getElementById('lbl-apu-alto');
+      const colAlto = document.getElementById('col-apu-alto');
+      const colAncho = document.getElementById('col-apu-ancho');
+      const directUnit = document.getElementById('apu-directo-unit-label');
+      const hint = document.getElementById('apu-dimensiones-hint');
+      const lblPrecio = document.getElementById('lbl-apu-precio');
+
+      if (directUnit) directUnit.textContent = unidad;
+      if (lblPrecio) lblPrecio.textContent = `Valor por Unidad ($ COP / ${unidad}) *`;
+
+      if (unidad === 'mÂ³') {
+        if (labelLargo) labelLargo.textContent = 'Largo (m) *';
+        if (labelAncho) labelAncho.textContent = 'Ancho (m) *';
+        if (labelAlto) labelAlto.textContent = 'Alto / Espesor (m) *';
+        if (colAlto) colAlto.style.display = 'block';
+        if (colAncho) colAncho.style.display = 'block';
+        if (hint) hint.textContent = 'Largo Ã— Ancho Ã— Alto Ã— Veces';
+      } else if (unidad === 'mÂ²') {
+        if (labelLargo) labelLargo.textContent = 'Largo (m) *';
+        if (labelAncho) labelAncho.textContent = 'Ancho / Alto (m) *';
+        if (colAlto) colAlto.style.display = 'none';
+        if (colAncho) colAncho.style.display = 'block';
+        if (hint) hint.textContent = 'Largo Ã— Ancho Ã— Veces';
+      } else if (unidad === 'ml') {
+        if (labelLargo) labelLargo.textContent = 'Longitud (ml) *';
+        if (colAncho) colAncho.style.display = 'none';
+        if (colAlto) colAlto.style.display = 'none';
+        if (hint) hint.textContent = 'Longitud Ã— Veces';
+      } else if (['und', 'kg', 'glb'].includes(unidad)) {
+        if (modoSelect && modoSelect.value !== 'directo') {
+          modoSelect.value = 'directo';
+          handleModalApuModeChange();
+        }
+      }
+      calculateModalApuPreview();
+    }
+
+    function handleModalApuModeChange() {
+      const modoSelect = document.getElementById('apu-modo-calculo');
+      if (!modoSelect) return;
+      const modo = modoSelect.value;
+      const dimCont = document.getElementById('apu-dimensiones-grid');
+      const dirCont = document.getElementById('col-apu-directo');
+      const hint = document.getElementById('apu-dimensiones-hint');
+
+      if (modo === 'directo') {
+        if (dimCont) dimCont.classList.add('hidden');
+        if (dirCont) dirCont.classList.remove('hidden');
+        if (hint) hint.textContent = 'Ingreso directo de cantidad';
+      } else {
+        if (dimCont) dimCont.classList.remove('hidden');
+        if (dirCont) dirCont.classList.add('hidden');
+        const unidad = document.getElementById('apu-unidad')?.value || 'mÂ³';
+        if (hint) {
+          if (unidad === 'mÂ³') hint.textContent = 'Largo Ã— Ancho Ã— Alto Ã— Veces';
+          else if (unidad === 'mÂ²') hint.textContent = 'Largo Ã— Ancho Ã— Veces';
+          else if (unidad === 'ml') hint.textContent = 'Longitud Ã— Veces';
+        }
+      }
+      calculateModalApuPreview();
+    }
+
+    // Modal para agregar o editar Ã­tem
     function openApuModal(preselectedChapter = null, apuId = null) {
       editingApuId = apuId;
       const modal = document.getElementById('modal-apu');
@@ -2290,6 +3014,9 @@
         document.getElementById('apu-actividad').value = item.actividad;
         document.getElementById('apu-elemento').value = item.elemento || "";
         document.getElementById('apu-material').value = item.material || "";
+        document.getElementById('apu-unidad').value = item.unidad || "m³";
+        const modoInit = (item.modoCalculo === 'directo' || item.cantidadManual) ? 'directo' : 'dimensiones'; document.getElementById('apu-modo-calculo').value = modoInit;
+        const elDirecto = document.getElementById('apu-cantidad-directa'); if (elDirecto) elDirecto.value = item.cantidadManual || '';
         document.getElementById('apu-veces').value = item.veces || 1;
         document.getElementById('apu-largo').value = item.largo || "";
         document.getElementById('apu-ancho').value = item.ancho || "";
@@ -2306,6 +3033,9 @@
         document.getElementById('apu-actividad').value = "Zapatas en Concreto 3000 PSI";
         document.getElementById('apu-elemento').value = "Z-" + (appBudget.length + 1);
         document.getElementById('apu-material').value = "Concreto 3000 PSI + Acero de refuerzo";
+        document.getElementById('apu-unidad').value = "m³";
+        document.getElementById('apu-modo-calculo').value = "dimensiones";
+        const elDirectoNew = document.getElementById('apu-cantidad-directa'); if (elDirectoNew) elDirectoNew.value = '';
         document.getElementById('apu-veces').value = 1;
         document.getElementById('apu-largo').value = "1.20";
         document.getElementById('apu-ancho').value = "1.20";
@@ -2314,6 +3044,8 @@
         document.getElementById('apu-desperdicio').value = "5";
       }
 
+      handleModalApuModeChange();
+      handleModalApuUnitChange();
       calculateModalApuPreview();
     }
 
@@ -2328,29 +3060,63 @@
       if (confirm(`¿Deseas eliminar el ítem "${item.elemento} - ${item.actividad}"?`)) {
         appBudget = appBudget.filter(i => i.id !== id);
         localStorage.setItem('obracontrol_budget_calc', JSON.stringify(appBudget));
+        syncBroadcast();
         renderBudgetView();
       }
     }
 
     // Cálculo en vivo dentro del formulario modal
-    function calculateModalApuPreview() {
-      const veces = parseFloat(document.getElementById('apu-veces').value) || 1;
-      const largo = parseFloat(document.getElementById('apu-largo').value) || 0;
-      const ancho = parseFloat(document.getElementById('apu-ancho').value) || 0;
-      const alto = parseFloat(document.getElementById('apu-alto').value) || 0;
-      const pu = parseFloat(document.getElementById('apu-precio').value) || 0;
-      const desp = parseFloat(document.getElementById('apu-desperdicio').value) || 0;
+        function calculateModalApuPreview() {
+      const unidad = document.getElementById('apu-unidad')?.value || 'mÂ³';
+      const modo = document.getElementById('apu-modo-calculo')?.value || 'dimensiones';
+      const manualInput = document.getElementById('apu-cantidad-directa');
+      const manual = manualInput ? parseFloat(manualInput.value) || 0 : 0;
+      const veces = parseFloat(document.getElementById('apu-veces')?.value) || 1;
+      const largo = parseFloat(document.getElementById('apu-largo')?.value) || 0;
+      const ancho = parseFloat(document.getElementById('apu-ancho')?.value) || 0;
+      const alto = parseFloat(document.getElementById('apu-alto')?.value) || 0;
+      const pu = parseFloat(document.getElementById('apu-precio')?.value) || 0;
+      const desp = parseFloat(document.getElementById('apu-desperdicio')?.value) || 0;
 
-      const volBase = veces * largo * ancho * alto;
-      const volAjustado = volBase * (1 + (desp / 100));
-      const costo = volAjustado * pu;
+      const isDirecto = (modo === 'directo');
+      const tempItem = {
+        unidad,
+        modoCalculo: isDirecto ? 'directo' : 'dimensiones',
+        cantidadManual: isDirecto ? manual : null,
+        veces,
+        largo,
+        ancho,
+        alto,
+        desperdicio: desp,
+        precioUnitario: pu
+      };
 
-      document.getElementById('preview-formula').textContent = `${veces} × ${largo.toFixed(2)}m × ${ancho.toFixed(2)}m × ${alto.toFixed(2)}m = ${volBase.toFixed(3)} m³`;
-      document.getElementById('preview-volumen-ajustado').textContent = `${volAjustado.toFixed(3)} m³ (con ${desp}% desp.)`;
-      document.getElementById('preview-costo-total').textContent = `${formatCOP(costo)} COP`;
+      const cantBase = calculateItemBaseQuantity(tempItem);
+      const cantAjustada = calculateItemQuantity(tempItem);
+      const costo = cantAjustada * pu;
+
+      let formulaStr = "";
+      if (isDirecto || ['und', 'kg', 'glb'].includes(unidad)) {
+        formulaStr = `${cantBase.toFixed(2)} ${unidad} (Entrada directa)`;
+      } else if (unidad === 'mÂ²') {
+        const dim2 = ancho > 0 ? ancho : (alto > 0 ? alto : 1);
+        formulaStr = `${veces > 1 ? veces + ' Ã— ' : ''}${largo.toFixed(2)}m Ã— ${dim2.toFixed(2)}m = ${cantBase.toFixed(2)} mÂ²`;
+      } else if (unidad === 'ml') {
+        formulaStr = `${veces > 1 ? veces + ' Ã— ' : ''}${largo.toFixed(2)}m = ${cantBase.toFixed(2)} ml`;
+      } else {
+        formulaStr = `${veces > 1 ? veces + ' Ã— ' : ''}${largo.toFixed(2)}m Ã— ${ancho.toFixed(2)}m Ã— ${alto.toFixed(2)}m = ${cantBase.toFixed(2)} mÂ³`;
+      }
+
+      const elFormula = document.getElementById('preview-formula');
+      const elVolAj = document.getElementById('preview-volumen-ajustado');
+      const elCosto = document.getElementById('preview-costo-total');
+
+      if (elFormula) elFormula.textContent = formulaStr;
+      if (elVolAj) elVolAj.textContent = `${cantAjustada.toFixed(2)} ${unidad}${desp > 0 ? ` (con ${desp}% desp.)` : ''}`;
+      if (elCosto) elCosto.textContent = `${formatCOP(costo)} COP`;
     }
 
-    // Guardar ítem en la memoria de cálculo
+    // Guardar Ã­tem en la memoria de cÃ¡lculo
     function handleSaveApu(event) {
       event.preventDefault();
 
@@ -2358,6 +3124,9 @@
       const actividad = document.getElementById('apu-actividad').value.trim();
       const elemento = document.getElementById('apu-elemento').value.trim() || "Ítem";
       const material = document.getElementById('apu-material').value.trim();
+      const unidad = document.getElementById('apu-unidad').value;
+      const modoCalculo = document.getElementById('apu-modo-calculo').value;
+      const elManual = document.getElementById('apu-cantidad-directa'); const cantidadManual = (modoCalculo === 'directo') ? (parseFloat(elManual?.value) || 1) : null;
       const veces = parseFloat(document.getElementById('apu-veces').value) || 1;
       const largo = parseFloat(document.getElementById('apu-largo').value) || 0;
       const ancho = parseFloat(document.getElementById('apu-ancho').value) || 0;
@@ -2372,6 +3141,9 @@
           item.actividad = actividad;
           item.elemento = elemento;
           item.material = material;
+          item.unidad = unidad;
+          item.modoCalculo = modoCalculo;
+          item.cantidadManual = cantidadManual;
           item.veces = veces;
           item.largo = largo;
           item.ancho = ancho;
@@ -2386,6 +3158,9 @@
           actividad: actividad,
           elemento: elemento,
           material: material,
+          unidad: unidad,
+          modoCalculo: modoCalculo,
+          cantidadManual: cantidadManual,
           veces: veces,
           largo: largo,
           ancho: ancho,
@@ -2398,6 +3173,7 @@
       }
 
       localStorage.setItem('obracontrol_budget_calc', JSON.stringify(appBudget));
+      syncBroadcast();
       closeModal('modal-apu');
       renderBudgetView();
       alert(`¡Elemento "${elemento} - ${actividad}" guardado con éxito!`);
@@ -2411,6 +3187,7 @@
         if (!appChapters.includes(clean)) {
           appChapters.push(clean);
           localStorage.setItem('obracontrol_chapters', JSON.stringify(appChapters));
+          syncBroadcast();
           renderBudgetView();
         }
       }
@@ -2423,6 +3200,7 @@
         if (!appChapters.includes(clean)) {
           appChapters.push(clean);
           localStorage.setItem('obracontrol_chapters', JSON.stringify(appChapters));
+          syncBroadcast();
           populateChapterDropdown();
           document.getElementById('apu-capitulo').value = clean;
         }
@@ -2431,21 +3209,16 @@
 
     // Exportar tabla a CSV (Excel compatible)
     function exportBudgetToCSV() {
-      let csv = "Capítulo;Elemento;Actividad;Material;Veces;Largo (m);Ancho (m);Alto (m);Volumen Base (m³);Desperdicio (%);Volumen Final (m³);Valor Unitario ($ COP);Costo Total ($ COP)\n";
+      let csv = "Capítulo;Elemento;Actividad;Material;Unidad;Dimensiones;Cant. Base;Desperdicio (%);Cant. Total;Valor Unitario ($ COP);Costo Total ($ COP)\n";
 
       appBudget.forEach(i => {
-        const v = Number(i.veces) || 1;
-        const l = Number(i.largo) || 0;
-        const an = Number(i.ancho) || 0;
-        const al = Number(i.alto) || 0;
-        const desp = Number(i.desperdicio) || 0;
+        const cantBase = calculateItemBaseQuantity(i);
+        const cantTotal = calculateItemQuantity(i);
         const pu = Number(i.precioUnitario) || 0;
+        const costo = cantTotal * pu;
+        const dimStr = formatItemDimensions(i);
 
-        const volBase = v * l * an * al;
-        const volAjustado = volBase * (1 + (desp / 100));
-        const costo = volAjustado * pu;
-
-        csv += `"${i.capitulo}";"${i.elemento}";"${i.actividad}";"${i.material}";${v};${l};${an};${al};${volBase.toFixed(3)};${desp}%;${volAjustado.toFixed(3)};${pu};${costo.toFixed(0)}\n`;
+        csv += `"${i.capitulo}";"${i.elemento}";"${i.actividad}";"${i.material}";"${i.unidad || 'm³'}";"${dimStr}";${cantBase.toFixed(2)};${i.desperdicio || 0}%;${cantTotal.toFixed(2)};${pu};${costo.toFixed(0)}\n`;
       });
 
       const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -2511,8 +3284,22 @@
 
     function setCategoryFilter(catId) {
       activeCategoryFilter = catId;
+
+      if (catId !== 'todos') {
+        const currentActive = appSheets.find(s => s.activo);
+        if (!currentActive || currentActive.categoria !== catId) {
+          const firstInCat = appSheets.find(s => s.categoria === catId);
+          if (firstInCat) {
+            appSheets.forEach(s => s.activo = (s.id === firstInCat.id));
+            localStorage.setItem('obracontrol_sheets', JSON.stringify(appSheets));
+            syncBroadcast();
+          }
+        }
+      }
+
       renderCategoryFilters();
       renderSheetsList();
+      renderViewer();
 
       const currentCatObj = CATEGORIAS.find(c => c.id === catId);
       const label = document.getElementById('btn-upload-label');
@@ -2602,6 +3389,7 @@
     function selectSheet(sheetId) {
       appSheets.forEach(s => s.activo = (s.id === sheetId));
       localStorage.setItem('obracontrol_sheets', JSON.stringify(appSheets));
+      syncBroadcast();
       renderSheetsList();
       renderViewer();
     }
@@ -2613,17 +3401,28 @@
       const confirmar = confirm(`¿Deseas eliminar el plano "${sheet.nombre}"?`);
       if (!confirmar) return;
 
-      delete inMemoryFiles[sheetId];
-      await deleteFileFromDB(sheetId);
+      try {
+        delete inMemoryFiles[sheetId];
+        await deleteFileFromDB(sheetId);
+      } catch (e) {
+        console.warn("Aviso eliminando de DB:", e);
+      }
 
       const wasActive = sheet.activo;
+      const catOfDeleted = sheet.categoria;
       appSheets = appSheets.filter(s => s.id !== sheetId);
 
       if (wasActive && appSheets.length > 0) {
-        appSheets[0].activo = true;
+        const nextInCat = appSheets.find(s => s.categoria === catOfDeleted);
+        if (nextInCat) {
+          nextInCat.activo = true;
+        } else {
+          appSheets[0].activo = true;
+        }
       }
 
       localStorage.setItem('obracontrol_sheets', JSON.stringify(appSheets));
+      syncBroadcast();
       renderCategoryFilters();
       renderSheetsList();
       renderViewer();
@@ -2662,7 +3461,9 @@
       if (activeSheet.tipo === 'vector') {
         paginationBar.classList.add('hidden');
         paginationBar.classList.remove('flex');
-        stage.innerHTML = VECTOR_PLAN_HTML;
+        stage.innerHTML = (activeSheet.categoria === 'estructural') 
+          ? VECTOR_STRUCTURAL_HTML 
+          : VECTOR_PLAN_HTML;
         return;
       }
 
@@ -2693,11 +3494,16 @@
 
           const loadingTask = pdfjsLib.getDocument(fileData);
           currentPdfDoc = await loadingTask.promise;
-          totalPdfPages = currentPdfDoc.numPages;
+          totalPdfPages = currentPdfDoc.numPages || 1;
           currentPdfPageNum = 1;
 
-          paginationBar.classList.remove('hidden');
-          paginationBar.classList.add('flex');
+          if (totalPdfPages > 1) {
+            paginationBar.classList.remove('hidden');
+            paginationBar.classList.add('flex');
+          } else {
+            paginationBar.classList.add('hidden');
+            paginationBar.classList.remove('flex');
+          }
           document.getElementById('pdf-total-pages').textContent = totalPdfPages;
 
           await renderCurrentPdfPage();
@@ -2853,45 +3659,51 @@
       closeModal('modal-subir-plano');
 
       reader.onload = async function(e) {
-        const dataUrl = e.target.result;
-        const fileSizeMb = (file.size / (1024 * 1024)).toFixed(1);
-        const newSheetId = "sheet-" + Date.now();
+        try {
+          const dataUrl = e.target.result;
+          const fileSizeMb = (file.size / (1024 * 1024)).toFixed(1);
+          const newSheetId = "sheet-" + Date.now();
 
-        await saveFileToDB(newSheetId, dataUrl);
-        inMemoryFiles[newSheetId] = dataUrl;
+          await saveFileToDB(newSheetId, dataUrl);
+          inMemoryFiles[newSheetId] = dataUrl;
 
-        appSheets.forEach(s => s.activo = false);
+          appSheets.forEach(s => s.activo = false);
 
-        const catObj = CATEGORIAS.find(c => c.id === categoria) || CATEGORIAS[1];
+          const catObj = CATEGORIAS.find(c => c.id === categoria) || CATEGORIAS[1];
 
-        const newSheet = {
-          id: newSheetId,
-          categoria: categoria,
-          codigo: isPdf ? "PDF" : "IMG",
-          nombre: customNombre || file.name,
-          subtitulo: customSubtitulo || `Plano ${catObj.nombre} · ${isPdf ? 'Documento PDF' : 'Imagen'}`,
-          tipo: isPdf ? 'pdf' : 'image',
-          icono: catObj.icono,
-          tamano: `${fileSizeMb} MB`,
-          activo: true
-        };
+          const newSheet = {
+            id: newSheetId,
+            categoria: categoria,
+            codigo: isPdf ? "PDF" : "IMG",
+            nombre: customNombre || file.name,
+            subtitulo: customSubtitulo || `Plano ${catObj.nombre} · ${isPdf ? 'Documento PDF' : 'Imagen'}`,
+            tipo: isPdf ? 'pdf' : 'image',
+            icono: catObj.icono,
+            tamano: `${fileSizeMb} MB`,
+            activo: true
+          };
 
-        if (file.size < 2 * 1024 * 1024) {
-          newSheet.dataUrl = dataUrl;
+          if (file.size < 2 * 1024 * 1024) {
+            newSheet.dataUrl = dataUrl;
+          }
+
+          appSheets.unshift(newSheet);
+          localStorage.setItem('obracontrol_sheets', JSON.stringify(appSheets));
+          syncBroadcast();
+
+          activeCategoryFilter = categoria;
+
+          renderCategoryFilters();
+          renderSheetsList();
+          renderViewer();
+          alert(`¡Plano "${newSheet.nombre}" agregado con éxito a ${catObj.nombre}!`);
+        } catch (err) {
+          console.error("Error al guardar plano:", err);
+          alert("Ocurrió un error al guardar el plano: " + err.message);
+        } finally {
+          loader.classList.add('hidden');
+          loader.classList.remove('flex');
         }
-
-        appSheets.unshift(newSheet);
-        localStorage.setItem('obracontrol_sheets', JSON.stringify(appSheets));
-
-        activeCategoryFilter = categoria;
-
-        loader.classList.add('hidden');
-        loader.classList.remove('flex');
-
-        renderCategoryFilters();
-        renderSheetsList();
-        renderViewer();
-        alert(`¡Plano "${newSheet.nombre}" agregado con éxito a ${catObj.nombre}!`);
       };
 
       reader.readAsDataURL(file);
@@ -2973,6 +3785,7 @@
       appProject.curaduria = document.getElementById('input-curaduria').value.trim() || DEFAULT_PROJECT.curaduria;
 
       localStorage.setItem('obracontrol_project', JSON.stringify(appProject));
+      syncBroadcast();
       renderProjectInfo();
       closeModal('modal-proyecto');
       alert("¡Ficha del proyecto actualizada correctamente!");
@@ -3000,6 +3813,7 @@
         activeProgressStatusFilter = "todos";
         activeProgressChapterFilter = "todos";
         progressSearchQuery = "";
+        syncBroadcast();
         renderProjectInfo();
         renderCategoryFilters();
         renderSheetsList();
@@ -3362,8 +4176,7 @@
         }
       } else {
         document.getElementById('modal-gasto-title').textContent = "Registrar Gasto de Obra";
-        const todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('gasto-fecha').value = todayStr;
+        document.getElementById('gasto-fecha').value = getLocalDateString();
         document.getElementById('gasto-categoria').value = (activeExpenseCategoryFilter !== 'todos') ? activeExpenseCategoryFilter : "materiales";
         document.getElementById('gasto-concepto').value = "";
         
@@ -3399,7 +4212,7 @@
     function handleSaveExpense(event) {
       event.preventDefault();
 
-      const fecha = document.getElementById('gasto-fecha').value;
+      const fecha = document.getElementById('gasto-fecha').value || getLocalDateString();
       const categoria = document.getElementById('gasto-categoria').value;
       const concepto = document.getElementById('gasto-concepto').value.trim();
       const capitulo = document.getElementById('gasto-capitulo').value;
@@ -3448,6 +4261,7 @@
       }
 
       localStorage.setItem('obracontrol_expenses', JSON.stringify(appExpenses));
+      syncBroadcast();
       closeModal('modal-gasto');
       renderExpensesView();
       alert(`¡Gasto "${concepto}" guardado exitosamente en la bitácora!`);
@@ -3464,6 +4278,7 @@
       if (confirm(`¿Deseas eliminar el gasto "${item.concepto}" (${formatCOP(item.total)})?`)) {
         appExpenses = appExpenses.filter(e => e.id !== id);
         localStorage.setItem('obracontrol_expenses', JSON.stringify(appExpenses));
+        syncBroadcast();
         renderExpensesView();
       }
     }
@@ -3508,16 +4323,9 @@
       let totalPendientes = 0;
 
       appBudget.forEach(item => {
-        const veces = Number(item.veces) || 1;
-        const largo = Number(item.largo) || 0;
-        const ancho = Number(item.ancho) || 0;
-        const alto = Number(item.alto) || 0;
-        const desp = Number(item.desperdicio) || 0;
+        const cant = calculateItemQuantity(item);
         const pu = Number(item.precioUnitario) || 0;
-
-        const volBase = veces * largo * ancho * alto;
-        const volAjustado = volBase * (1 + (desp / 100));
-        const costoTotalItem = volAjustado * pu;
+        const costoTotalItem = cant * pu;
         totalPresupuesto += costoTotalItem;
 
         const prog = appProgress[item.id] || { ejecutado: 0, porcentaje: 0, estado: "pendiente" };
@@ -3607,7 +4415,7 @@
       const current = select.value || "todos";
       select.innerHTML = `<option value="todos">Todos los Capítulos (${appBudget.length})</option>`;
       appChapters.forEach(cap => {
-        const count = appBudget.filter(i => i.capitulo === cap).length;
+        const count = appBudget.filter(i => matchChapter(i.capitulo, cap)).length;
         const opt = document.createElement('option');
         opt.value = cap;
         opt.textContent = `${cap} (${count})`;
@@ -3636,7 +4444,7 @@
         const est = prog.estado || (prog.porcentaje >= 100 ? "terminada" : (prog.porcentaje > 0 ? "en_proceso" : "pendiente"));
 
         const matchStatus = (activeProgressStatusFilter === "todos" || est === activeProgressStatusFilter);
-        const matchChap = (activeProgressChapterFilter === "todos" || item.capitulo === activeProgressChapterFilter);
+        const matchChap = (activeProgressChapterFilter === "todos" || matchChapter(item.capitulo, activeProgressChapterFilter));
 
         let matchQuery = true;
         if (progressSearchQuery) {
@@ -3652,15 +4460,9 @@
       let subtotalPresupuestado = 0;
 
       filtered.forEach(item => {
-        const v = Number(item.veces) || 1;
-        const l = Number(item.largo) || 0;
-        const an = Number(item.ancho) || 0;
-        const al = Number(item.alto) || 0;
-        const desp = Number(item.desperdicio) || 0;
+        const cant = calculateItemQuantity(item);
         const pu = Number(item.precioUnitario) || 0;
-
-        const vol = (v * l * an * al) * (1 + (desp / 100));
-        const costo = vol * pu;
+        const costo = cant * pu;
         subtotalPresupuestado += costo;
 
         const prog = appProgress[item.id] || { porcentaje: 0 };
@@ -3692,26 +4494,22 @@
 
       let rowsHtml = "";
       filtered.forEach(item => {
-        const v = Number(item.veces) || 1;
-        const l = Number(item.largo) || 0;
-        const an = Number(item.ancho) || 0;
-        const al = Number(item.alto) || 0;
-        const desp = Number(item.desperdicio) || 0;
+        const cantProy = calculateItemQuantity(item);
         const pu = Number(item.precioUnitario) || 0;
-
-        const volProy = (v * l * an * al) * (1 + (desp / 100));
-        const costoProy = volProy * pu;
+        const costoProy = cantProy * pu;
+        const unidad = item.unidad || 'm³';
 
         const prog = appProgress[item.id] || {
           ejecutado: 0,
           porcentaje: 0,
           estado: "pendiente",
           fecha: "-",
-          notas: "Sin observaciones registradas."
+          notas: "Sin observaciones registradas.",
+          historial: []
         };
 
         const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
-        const ejecutadoM3 = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (volProy * (pct / 100));
+        const cantEjecutada = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (cantProy * (pct / 100));
         const est = prog.estado || (pct >= 100 ? "terminada" : (pct > 0 ? "en_proceso" : "pendiente"));
 
         let badgeStatusHtml = "";
@@ -3726,6 +4524,8 @@
           badgeStatusHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">⚪ Pendiente</span>`;
           barColor = "bg-slate-400";
         }
+
+        const histCount = (prog.historial && prog.historial.length) ? prog.historial.length : 1;
 
         rowsHtml += `
           <tr class="border-b border-surface-container-high/40 hover:bg-surface-container-low/40 transition-colors">
@@ -3748,13 +4548,13 @@
             </td>
 
             <!-- Cantidad Proyectada -->
-            <td class="py-3 px-3 text-right font-mono text-xs font-semibold text-on-surface">
-              ${volProy.toFixed(2)} m³
+            <td class="py-3 px-3 text-right font-mono text-xs font-semibold text-on-surface whitespace-nowrap">
+              ${cantProy.toFixed(2)} <span class="text-[10px] text-outline">${unidad}</span>
             </td>
 
             <!-- Cantidad Ejecutada -->
-            <td class="py-3 px-3 text-right font-mono text-xs font-bold text-primary">
-              ${ejecutadoM3.toFixed(2)} m³
+            <td class="py-3 px-3 text-right font-mono text-xs font-bold text-primary whitespace-nowrap">
+              ${cantEjecutada.toFixed(2)} <span class="text-[10px] text-outline">${unidad}</span>
             </td>
 
             <!-- Barra de Avance y Porcentaje -->
@@ -3782,12 +4582,18 @@
               ${prog.notas || '<span class="text-outline italic">Sin notas</span>'}
             </td>
 
-            <!-- Acción: Actualizar -->
+            <!-- Acción: Actualizar & Historial -->
             <td class="py-3 px-3 text-center whitespace-nowrap">
-              <button onclick="openProgressModal('${item.id}')" class="px-3 py-1.5 rounded-full bg-primary text-on-primary hover:opacity-95 text-xs font-semibold flex items-center gap-1 shadow-sm transition-transform active:scale-95" title="Actualizar cubicación y avance">
-                <span class="material-symbols-outlined text-[15px]">edit_note</span>
-                <span>Actualizar</span>
-              </button>
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="openProgressModal('${item.id}')" class="px-2.5 py-1 rounded-full bg-primary text-on-primary hover:opacity-95 text-xs font-semibold flex items-center gap-1 shadow-sm transition-transform active:scale-95" title="Actualizar avance">
+                  <span class="material-symbols-outlined text-[14px]">edit_note</span>
+                  <span>Actualizar</span>
+                </button>
+                <button onclick="openProgressHistoryModal('${item.id}')" class="px-2 py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-medium flex items-center gap-0.5 border border-outline-variant/40" title="Ver historial de inspecciones">
+                  <span class="material-symbols-outlined text-[13px] text-secondary">history</span>
+                  <span class="text-[10px]">(${histCount})</span>
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -3806,7 +4612,7 @@
               <th class="py-2.5 px-3">Estado</th>
               <th class="py-2.5 px-3">Inspección</th>
               <th class="py-2.5 px-4">Notas de Supervisión</th>
-              <th class="py-2.5 px-3 text-center">Acción</th>
+              <th class="py-2.5 px-3 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -3848,46 +4654,67 @@
       const item = appBudget.find(i => i.id === itemId);
       if (!item) return;
 
-      const v = Number(item.veces) || 1;
-      const l = Number(item.largo) || 0;
-      const an = Number(item.ancho) || 0;
-      const al = Number(item.alto) || 0;
-      const desp = Number(item.desperdicio) || 0;
+      const cantProy = calculateItemQuantity(item);
       const pu = Number(item.precioUnitario) || 0;
-
-      const volProy = (v * l * an * al) * (1 + (desp / 100));
-      const costoProy = volProy * pu;
+      const costoProy = cantProy * pu;
+      const unidad = item.unidad || 'm³';
 
       const prog = appProgress[itemId] || {
         ejecutado: 0,
         porcentaje: 0,
         estado: "pendiente",
-        fecha: new Date().toISOString().split('T')[0],
-        notas: ""
+        fecha: getLocalDateString(),
+        notas: "",
+        historial: []
       };
 
       document.getElementById('modal-avance-elemento').textContent = item.elemento || "Ítem";
       document.getElementById('modal-avance-actividad').textContent = item.actividad;
       document.getElementById('modal-avance-capitulo').textContent = item.capitulo;
-      document.getElementById('modal-avance-proyectado').textContent = `${volProy.toFixed(2)} m³`;
+      document.getElementById('modal-avance-proyectado').textContent = `${cantProy.toFixed(2)} ${unidad}`;
       document.getElementById('modal-avance-costo-total').textContent = formatCOP(costoProy);
 
+      const unitBadgeModal = document.getElementById('modal-avance-unit-lbl');
+      if (unitBadgeModal) unitBadgeModal.textContent = unidad;
+
       document.getElementById('avance-item-id').value = itemId;
-      document.getElementById('avance-proyectado-val').value = volProy;
+      document.getElementById('avance-proyectado-val').value = cantProy;
       document.getElementById('avance-costo-val').value = costoProy;
 
-      document.getElementById('avance-fecha').value = prog.fecha && prog.fecha !== "-" ? prog.fecha : new Date().toISOString().split('T')[0];
+      document.getElementById('avance-fecha').value = prog.fecha && prog.fecha !== "-" ? prog.fecha : getLocalDateString();
       
       const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
-      const cantEjecutada = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (volProy * (pct / 100));
+      const cantEjecutada = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (cantProy * (pct / 100));
 
       document.getElementById('avance-porcentaje').value = pct;
-      document.getElementById('avance-range').value = pct;
+      document.getElementById('avance-range').value = Math.round(pct);
       document.getElementById('avance-ejecutado').value = cantEjecutada.toFixed(2);
       document.getElementById('avance-estado').value = prog.estado || (pct >= 100 ? "terminada" : (pct > 0 ? "en_proceso" : "pendiente"));
       document.getElementById('avance-notas').value = prog.notas || "";
 
-      updateProgressModalPreview(volProy, costoProy, cantEjecutada, pct);
+      // Mostrar historial reciente dentro del modal
+      const histList = document.getElementById('modal-avance-historial-list');
+      if (histList) {
+        histList.innerHTML = "";
+        const records = (prog.historial && prog.historial.length) ? prog.historial : [
+          { fecha: prog.fecha || getLocalDateString(), porcentaje: pct, ejecutado: cantEjecutada, estado: prog.estado || 'pendiente', inspector: "Arq. Supervisor", notas: prog.notas || "Inspección inicial." }
+        ];
+
+        records.slice(0, 3).forEach(h => {
+          const div = document.createElement('div');
+          div.className = "p-2 rounded bg-surface-container-low text-[11px] flex items-center justify-between";
+          div.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-outline">${h.fecha}</span>
+              <span class="font-bold text-primary">${h.porcentaje}% (${Number(h.ejecutado).toFixed(2)} ${unidad})</span>
+            </div>
+            <span class="text-[10px] text-on-surface-variant truncate max-w-[150px]">${h.notas || '-'}</span>
+          `;
+          histList.appendChild(div);
+        });
+      }
+
+      updateProgressModalPreview(cantProy, costoProy, cantEjecutada, pct, unidad);
 
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -3903,13 +4730,15 @@
 
       document.getElementById('avance-ejecutado').value = ejecutado.toFixed(2);
       autoSelectProgressStatus(pct);
-      updateProgressModalPreview(volProy, costoProy, ejecutado, pct);
+      const itemId = document.getElementById('avance-item-id').value;
+      const item = appBudget.find(i => i.id === itemId);
+      updateProgressModalPreview(volProy, costoProy, ejecutado, pct, item ? item.unidad : 'm³');
     }
 
     function calculateProgressFromPercentage() {
       let pct = parseFloat(document.getElementById('avance-porcentaje').value) || 0;
       pct = Math.min(100, Math.max(0, pct));
-      document.getElementById('avance-range').value = pct;
+      document.getElementById('avance-range').value = Math.round(pct);
 
       const volProy = parseFloat(document.getElementById('avance-proyectado-val').value) || 0;
       const costoProy = parseFloat(document.getElementById('avance-costo-val').value) || 0;
@@ -3917,7 +4746,9 @@
 
       document.getElementById('avance-ejecutado').value = ejecutado.toFixed(2);
       autoSelectProgressStatus(pct);
-      updateProgressModalPreview(volProy, costoProy, ejecutado, pct);
+      const itemId = document.getElementById('avance-item-id').value;
+      const item = appBudget.find(i => i.id === itemId);
+      updateProgressModalPreview(volProy, costoProy, ejecutado, pct, item ? item.unidad : 'm³');
     }
 
     function calculateProgressFromExecuted() {
@@ -3933,12 +4764,14 @@
       document.getElementById('avance-porcentaje').value = pct.toFixed(1);
       document.getElementById('avance-range').value = Math.round(pct);
       autoSelectProgressStatus(pct);
-      updateProgressModalPreview(volProy, costoProy, ejecutado, pct);
+      const itemId = document.getElementById('avance-item-id').value;
+      const item = appBudget.find(i => i.id === itemId);
+      updateProgressModalPreview(volProy, costoProy, ejecutado, pct, item ? item.unidad : 'm³');
     }
 
     function setQuickProgress(pct) {
       document.getElementById('avance-porcentaje').value = pct;
-      document.getElementById('avance-range').value = pct;
+      document.getElementById('avance-range').value = Math.round(pct);
 
       const volProy = parseFloat(document.getElementById('avance-proyectado-val').value) || 0;
       const costoProy = parseFloat(document.getElementById('avance-costo-val').value) || 0;
@@ -3946,7 +4779,9 @@
 
       document.getElementById('avance-ejecutado').value = ejecutado.toFixed(2);
       autoSelectProgressStatus(pct);
-      updateProgressModalPreview(volProy, costoProy, ejecutado, pct);
+      const itemId = document.getElementById('avance-item-id').value;
+      const item = appBudget.find(i => i.id === itemId);
+      updateProgressModalPreview(volProy, costoProy, ejecutado, pct, item ? item.unidad : 'm³');
     }
 
     function autoSelectProgressStatus(pct) {
@@ -3961,12 +4796,14 @@
       }
     }
 
-    function updateProgressModalPreview(volProy, costoProy, ejecutado, pct) {
+    function updateProgressModalPreview(volProy, costoProy, ejecutado, pct, unidad = 'm³') {
       const pendiente = Math.max(0, volProy - ejecutado);
       const valorEjecutado = costoProy * (pct / 100);
 
-      document.getElementById('modal-avance-calc-pendiente').textContent = `${pendiente.toFixed(2)} m³`;
-      document.getElementById('modal-avance-calc-valor').textContent = `${formatCOP(valorEjecutado)} COP`;
+      const elPend = document.getElementById('modal-avance-calc-pendiente');
+      const elVal = document.getElementById('modal-avance-calc-valor');
+      if (elPend) elPend.textContent = `${pendiente.toFixed(2)} ${unidad}`;
+      if (elVal) elVal.textContent = `${formatCOP(valorEjecutado)} COP`;
     }
 
     function handleSaveProgress(event) {
@@ -3975,21 +4812,36 @@
       const itemId = document.getElementById('avance-item-id').value;
       if (!itemId) return;
 
-      const fecha = document.getElementById('avance-fecha').value;
+      const fecha = document.getElementById('avance-fecha').value || getLocalDateString();
       const estado = document.getElementById('avance-estado').value;
       const ejecutado = parseFloat(document.getElementById('avance-ejecutado').value) || 0;
       const porcentaje = parseFloat(document.getElementById('avance-porcentaje').value) || 0;
       const notas = document.getElementById('avance-notas').value.trim();
 
-      appProgress[itemId] = {
-        ejecutado,
-        porcentaje,
-        estado,
-        fecha,
-        notas
-      };
+      if (!appProgress[itemId]) {
+        appProgress[itemId] = { historial: [] };
+      }
+      if (!appProgress[itemId].historial) {
+        appProgress[itemId].historial = [];
+      }
+
+      appProgress[itemId].ejecutado = ejecutado;
+      appProgress[itemId].porcentaje = porcentaje;
+      appProgress[itemId].estado = estado;
+      appProgress[itemId].fecha = fecha;
+      appProgress[itemId].notas = notas;
+
+      appProgress[itemId].historial.unshift({
+        fecha: fecha,
+        porcentaje: porcentaje,
+        ejecutado: ejecutado,
+        estado: estado,
+        inspector: "Arq. Supervisor",
+        notas: notas || "Inspección técnica registrada en obra."
+      });
 
       localStorage.setItem('obracontrol_progress', JSON.stringify(appProgress));
+      syncBroadcast();
       closeModal('modal-avance');
       renderProgressView();
 
@@ -3997,27 +4849,114 @@
       alert(`¡Avance de "${item ? item.elemento : 'la partida'}" actualizado al ${porcentaje.toFixed(0)}%!`);
     }
 
+    // Modal de Historial Cronológico de Inspecciones (Falla 8)
+        function openProgressHistoryModal(itemId) {
+      const item = appBudget.find(i => i.id === itemId);
+      if (!item) return;
+
+      const prog = appProgress[itemId] || {
+        ejecutado: 0,
+        porcentaje: 0,
+        estado: "pendiente",
+        fecha: "-",
+        notas: "Sin observaciones registradas.",
+        historial: []
+      };
+
+      const cantProy = calculateItemQuantity(item);
+      const unidad = item.unidad || 'mÂ³';
+      const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
+      const cantEjecutada = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (cantProy * (pct / 100));
+
+      const elCodigo = document.getElementById('modal-historial-codigo');
+      const elCap = document.getElementById('modal-historial-capitulo');
+      const elAct = document.getElementById('modal-historial-actividad');
+      const elProy = document.getElementById('modal-historial-proyectado');
+      const elActual = document.getElementById('modal-historial-actual');
+      const elPct = document.getElementById('modal-historial-pct');
+      const elSub = document.getElementById('modal-historial-subtitulo');
+
+      if (elCodigo) elCodigo.textContent = item.elemento || 'Ãtem';
+      if (elCap) elCap.textContent = item.capitulo;
+      if (elAct) elAct.textContent = item.actividad;
+      if (elProy) elProy.textContent = `${cantProy.toFixed(2)} ${unidad}`;
+      if (elActual) elActual.textContent = `${cantEjecutada.toFixed(2)} ${unidad}`;
+      if (elPct) elPct.textContent = `${pct.toFixed(0)}%`;
+      if (elSub) elSub.textContent = `Registro cronolÃ³gico de inspecciones Â· Meta: ${cantProy.toFixed(2)} ${unidad}`;
+
+      const container = document.getElementById('modal-historial-timeline');
+      if (container) {
+        container.innerHTML = "";
+
+        const historyRecords = (prog.historial && prog.historial.length > 0)
+          ? prog.historial
+          : [
+              {
+                fecha: prog.fecha && prog.fecha !== '-' ? prog.fecha : getLocalDateString(),
+                porcentaje: pct,
+                ejecutado: cantEjecutada,
+                estado: prog.estado || 'pendiente',
+                inspector: "Arq. Supervisor de Obra",
+                notas: prog.notas || "InspecciÃ³n tÃ©cnica inicial."
+              }
+            ];
+
+        historyRecords.forEach((h, idx) => {
+          const card = document.createElement('div');
+          card.className = "p-3 sm:p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col gap-2";
+          
+          let badgeColor = "bg-slate-100 text-slate-700";
+          if (h.estado === "terminada" || h.porcentaje >= 100) badgeColor = "bg-emerald-100 text-emerald-900 border border-emerald-300";
+          else if (h.estado === "en_proceso" || h.porcentaje > 0) badgeColor = "bg-amber-100 text-amber-900 border border-amber-300";
+
+          card.innerHTML = `
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center font-mono">
+                  #${historyRecords.length - idx}
+                </span>
+                <span class="font-mono text-xs font-bold text-on-surface">${h.fecha}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${badgeColor}">
+                  ${h.estado || 'inspecciÃ³n'}
+                </span>
+              </div>
+              <div class="text-right">
+                <span class="font-mono font-bold text-xs text-primary">${h.porcentaje}% ejecutado</span>
+                <span class="text-[11px] text-on-surface-variant font-mono block">(${Number(h.ejecutado).toFixed(2)} de ${cantProy.toFixed(2)} ${unidad})</span>
+              </div>
+            </div>
+            <div class="bg-surface-container-lowest p-2.5 rounded-lg border border-outline-variant/30 text-xs text-on-surface">
+              <div class="text-[10px] text-outline font-semibold mb-0.5">Inspector: ${h.inspector || 'Arq. Residente'}</div>
+              <p class="text-xs text-on-surface-variant">${h.notas || 'Sin observaciones adicionales registradas.'}</p>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      const modal = document.getElementById('modal-historial-avance');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
     // Exportar Acta de Avance a CSV
     function exportProgressToCSV() {
-      let csv = "Elemento;Actividad;Capítulo;Material;Cubicación Proyectada (m³);Cubicación Ejecutada (m³);% Avance Físico;Estado;Fecha Última Inspección;Valor Presupuestado ($ COP);Valor Ejecutado ($ COP);Notas de Supervisión\n";
+      let csv = "Elemento;Actividad;Capítulo;Material;Unidad;Cantidad Proyectada;Cantidad Ejecutada;% Avance Físico;Estado;Fecha Última Inspección;Valor Presupuestado ($ COP);Valor Ejecutado ($ COP);Notas de Supervisión\n";
 
       appBudget.forEach(i => {
-        const v = Number(i.veces) || 1;
-        const l = Number(i.largo) || 0;
-        const an = Number(i.ancho) || 0;
-        const al = Number(i.alto) || 0;
-        const desp = Number(i.desperdicio) || 0;
+        const cantProy = calculateItemQuantity(i);
         const pu = Number(i.precioUnitario) || 0;
-
-        const volProy = (v * l * an * al) * (1 + (desp / 100));
-        const costoProy = volProy * pu;
+        const costoProy = cantProy * pu;
+        const unidad = i.unidad || 'm³';
 
         const prog = appProgress[i.id] || { ejecutado: 0, porcentaje: 0, estado: "pendiente", fecha: "-", notas: "" };
         const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
-        const ejecutado = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (volProy * (pct / 100));
+        const ejecutado = prog.ejecutado !== undefined ? Number(prog.ejecutado) : (cantProy * (pct / 100));
         const costoEjecutado = costoProy * (pct / 100);
 
-        csv += `"${i.elemento}";"${i.actividad}";"${i.capitulo}";"${i.material}";${volProy.toFixed(2)};${ejecutado.toFixed(2)};${pct.toFixed(1)}%;"${prog.estado}";"${prog.fecha}";${costoProy.toFixed(0)};${costoEjecutado.toFixed(0)};"${(prog.notas || '').replace(/"/g, '""')}"\n`;
+        csv += `"${i.elemento}";"${i.actividad}";"${i.capitulo}";"${i.material}";"${unidad}";${cantProy.toFixed(2)};${ejecutado.toFixed(2)};${pct.toFixed(1)}%;"${prog.estado}";"${prog.fecha}";${costoProy.toFixed(0)};${costoEjecutado.toFixed(0)};"${(prog.notas || '').replace(/"/g, '""')}"\n`;
       });
 
       const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -4039,18 +4978,13 @@
       let totalEjecutadoFinanciero = 0;
 
       appBudget.forEach(item => {
-        const v = Number(item.veces) || 1;
-        const l = Number(item.largo) || 0;
-        const an = Number(item.ancho) || 0;
-        const al = Number(item.alto) || 0;
-        const desp = Number(item.desperdicio) || 0;
+        const cantBase = calculateItemBaseQuantity(item);
+        const cantTotal = calculateItemQuantity(item);
         const pu = Number(item.precioUnitario) || 0;
 
-        const volBase = v * l * an * al;
-        const volAjustado = volBase * (1 + (desp / 100));
-        const costoTotal = volAjustado * pu;
+        const costoTotal = cantTotal * pu;
         totalPresupuesto += costoTotal;
-        totalPresupuestoBase += (volBase * pu);
+        totalPresupuestoBase += (cantBase * pu);
 
         const prog = appProgress[item.id] || { porcentaje: 0 };
         const pct = Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
@@ -4197,35 +5131,52 @@
       container.innerHTML = html;
     }
 
-    // Matriz de Alertas Inteligentes
+    // Matriz de Alertas Inteligentes (Falla 4 corregida: audita TODOS los capítulos)
     function renderSummaryAlerts(pres, gastos, saldo, fis, fin) {
       const container = document.getElementById('resumen-alertas-container');
       if (!container) return;
 
       const alertas = [];
 
-      // 1. Alerta de Cimentación
-      let presCim = 0;
-      appBudget.filter(i => i.capitulo.includes("Cimentación")).forEach(i => {
-        const vol = (i.veces * i.largo * i.ancho * i.alto) * (1 + (i.desperdicio / 100));
-        presCim += (vol * i.precioUnitario);
-      });
-      let gastoCim = 0;
-      appExpenses.filter(e => e.capitulo.includes("Cimentación")).forEach(e => gastoCim += Number(e.total) || 0);
-
-      if (gastoCim > presCim && presCim > 0) {
-        alertas.push({
-          tipo: "danger",
-          icono: "warning",
-          titulo: "Sobrecosto en Cimentación",
-          desc: `Se ha gastado ${formatCOP(gastoCim)} superando el presupuesto de ${formatCOP(presCim)}. Se sugiere auditar el desperdicio en zapatas.`
+      // 1. Auditar TODOS los capítulos de obra para detectar sobrecostos reales
+      let sobrecostosDetectados = 0;
+      appChapters.forEach(cap => {
+        let presCap = 0;
+        appBudget.filter(i => matchChapter(i.capitulo, cap)).forEach(i => {
+          const cant = calculateItemQuantity(i);
+          presCap += (cant * (Number(i.precioUnitario) || 0));
         });
-      } else {
+
+        let gastoCap = 0;
+        appExpenses.filter(e => matchChapter(e.capitulo, cap)).forEach(e => {
+          gastoCap += (Number(e.total) || 0);
+        });
+
+        if (gastoCap > presCap && presCap > 0) {
+          sobrecostosDetectados++;
+          const sobrecosto = gastoCap - presCap;
+          alertas.push({
+            tipo: "danger",
+            icono: "warning",
+            titulo: `Sobrecosto en ${cap}`,
+            desc: `Se ha gastado ${formatCOP(gastoCap)} superando el presupuesto asignado de ${formatCOP(presCap)} (Sobrecosto de ${formatCOP(sobrecosto)} COP). Se requiere auditar los consumos y frenar nuevas compras.`
+          });
+        } else if (gastoCap >= presCap * 0.9 && presCap > 0) {
+          alertas.push({
+            tipo: "warning",
+            icono: "trending_up",
+            titulo: `${cap} cerca del límite`,
+            desc: `Gastado el ${((gastoCap / presCap) * 100).toFixed(0)}% (${formatCOP(gastoCap)} de ${formatCOP(presCap)}). Restan ${formatCOP(presCap - gastoCap)} COP.`
+          });
+        }
+      });
+
+      if (sobrecostosDetectados === 0) {
         alertas.push({
           tipo: "success",
           icono: "check_circle",
-          titulo: "Cimentación en Control",
-          desc: `Cimentación con ${formatCOP(gastoCim)} gastados de ${formatCOP(presCim)} asignados. Margen favorable.`
+          titulo: "Capítulos de Obra en Control",
+          desc: "Ningún capítulo presenta sobrecosto con respecto a los valores proyectados en el presupuesto."
         });
       }
 
@@ -4236,21 +5187,21 @@
           tipo: "success",
           icono: "savings",
           titulo: "Excelente Flujo de Caja",
-          desc: `Dispones del ${pctSaldo.toFixed(0)}% del presupuesto libre (${formatCOP(saldo)}) para las etapas de estructura y mampostería.`
+          desc: `Dispones del ${pctSaldo.toFixed(0)}% del presupuesto libre (${formatCOP(saldo)}) para las etapas restantes de obra.`
         });
       } else if (pctSaldo > 15) {
         alertas.push({
           tipo: "warning",
           icono: "info",
           titulo: "Flujo de Caja Estable",
-          desc: `Resta el ${pctSaldo.toFixed(0)}% del presupuesto. Programar compras de acero y formaleta con anticipación.`
+          desc: `Resta el ${pctSaldo.toFixed(0)}% del presupuesto libre (${formatCOP(saldo)}). Programar compras de materiales con anticipación.`
         });
       } else {
         alertas.push({
           tipo: "danger",
           icono: "error",
           titulo: "Presupuesto Comprometido",
-          desc: `Solo resta el ${pctSaldo.toFixed(0)}% del presupuesto. Se requiere congelar partidas no esenciales.`
+          desc: `Solo resta el ${pctSaldo.toFixed(0)}% del presupuesto (${formatCOP(saldo)}). Se requiere congelar partidas no esenciales.`
         });
       }
 
@@ -4267,7 +5218,7 @@
           tipo: "warning",
           icono: "speed",
           titulo: "Desviación en Cronograma",
-          desc: `Se ha pagado el ${fin.toFixed(1)}% pero el avance físico computado es del ${fis.toFixed(1)}%. Revisar tiempos de fraguado y rendimientos.`
+          desc: `Se ha pagado el ${fin.toFixed(1)}% pero el avance físico computado es del ${fis.toFixed(1)}%. Revisar tiempos y rendimientos.`
         });
       }
 
@@ -4324,10 +5275,10 @@
         let cantItemsCap = 0;
         let sumPctFisico = 0;
 
-        appBudget.filter(i => i.capitulo === cap).forEach(i => {
+        appBudget.filter(i => matchChapter(i.capitulo, cap)).forEach(i => {
           cantItemsCap++;
-          const vol = (i.veces * i.largo * i.ancho * i.alto) * (1 + (i.desperdicio / 100));
-          const costo = vol * i.precioUnitario;
+          const cant = calculateItemQuantity(i);
+          const costo = cant * (Number(i.precioUnitario) || 0);
           presCap += costo;
 
           const prog = appProgress[i.id] || { porcentaje: 0 };
@@ -4337,7 +5288,7 @@
         // Gastos del capítulo
         let gasCap = 0;
         let countGastosCap = 0;
-        appExpenses.filter(e => e.capitulo === cap).forEach(e => {
+        appExpenses.filter(e => matchChapter(e.capitulo, cap)).forEach(e => {
           countGastosCap++;
           gasCap += Number(e.total) || 0;
         });
@@ -4464,17 +5415,17 @@
         let cantItemsCap = 0;
         let sumPctFisico = 0;
 
-        appBudget.filter(i => i.capitulo === cap).forEach(i => {
+        appBudget.filter(i => matchChapter(i.capitulo, cap)).forEach(i => {
           cantItemsCap++;
-          const vol = (i.veces * i.largo * i.ancho * i.alto) * (1 + (i.desperdicio / 100));
-          presCap += (vol * i.precioUnitario);
+          const cant = calculateItemQuantity(i);
+          presCap += (cant * (Number(i.precioUnitario) || 0));
 
           const prog = appProgress[i.id] || { porcentaje: 0 };
           sumPctFisico += Math.min(100, Math.max(0, Number(prog.porcentaje) || 0));
         });
 
         let gasCap = 0;
-        appExpenses.filter(e => e.capitulo === cap).forEach(e => {
+        appExpenses.filter(e => matchChapter(e.capitulo, cap)).forEach(e => {
           gasCap += Number(e.total) || 0;
         });
 
